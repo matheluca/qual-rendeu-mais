@@ -284,12 +284,32 @@
   .selo.no{background:var(--down)}
   .veredito p{
     margin:0;
+    flex:1 1 auto;
     font-family:var(--f-mono);
     font-size:clamp(11px,1.4vw,13px);
     line-height:1.5;
     color:var(--ink-soft);
   }
   .veredito b{color:var(--ink);font-weight:500}
+  .proxima{
+    flex:none;
+    margin-left:auto;
+    appearance:none;
+    font-family:var(--f);
+    font-size:11px;
+    font-weight:700;
+    font-variation-settings:"wdth" 112;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    background:var(--ink);
+    border:1.5px solid var(--ink);
+    color:var(--paper);
+    padding:11px 20px;
+    cursor:pointer;
+    transition:background .18s ease, border-color .18s ease;
+  }
+  .proxima:hover{background:var(--accent);border-color:var(--accent)}
+  .proxima:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
   /* ---------- rodapé ---------- */
   .foot{
@@ -386,7 +406,8 @@
     .eixo{grid-area:eixo;height:26px;margin-top:4px}
     .nome{font-size:clamp(19px,5.4vw,26px)}
     .ret{font-size:clamp(26px,8vw,38px)}
-    .veredito{align-items:flex-start}
+    .veredito{align-items:flex-start;flex-wrap:wrap}
+    .proxima{width:100%;margin-left:0;margin-top:4px}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -449,6 +470,7 @@
   <div class="veredito" id="veredito">
     <span class="selo" id="selo">·</span>
     <p id="vtexto"></p>
+    <button class="proxima" id="proxima" type="button" hidden>Próxima →</button>
   </div>
 
   <footer class="foot">
@@ -689,7 +711,22 @@ var el = function(id){ return document.getElementById(id); };
 var streakEl = el("streak"), bestEl = el("best");
 var linhaA = el("linhaA"), linhaB = el("linhaB");
 var veredito = el("veredito"), selo = el("selo"), vtexto = el("vtexto"), over = el("over");
-var vidasEl = el("vidas");
+var vidasEl = el("vidas"), botaoProx = el("proxima");
+
+/* o jogo espera o clique: nada avança sozinho */
+function armaProxima(rotulo, fn){
+  estado.proxima = fn;
+  botaoProx.textContent = rotulo;
+  botaoProx.hidden = false;
+  botaoProx.focus();
+}
+function segueProxima(){
+  if (!estado.proxima) return;
+  var fn = estado.proxima;
+  estado.proxima = null;
+  botaoProx.hidden = true;
+  fn();
+}
 
 function pintaVidas(){
   Array.prototype.forEach.call(vidasEl.children, function(pt, k){
@@ -825,6 +862,8 @@ function rodada(){
   linhaA.disabled = false;
   linhaB.disabled = false;
   veredito.classList.remove("on");
+  botaoProx.hidden = true;
+  estado.proxima = null;
   estado.travado = false;
 }
 
@@ -859,12 +898,9 @@ function responde(escolheuA){
                         : " <b>Sem vidas.</b>");
   veredito.classList.add("on");
 
-  setTimeout(function(){
-    if (acertou){ avanca(); return; }
-    /* errar custa uma vida, não a partida inteira */
-    if (estado.vidas > 0) rodada();
-    else encerra(false);
-  }, 2100);
+  if (acertou)                armaProxima("Próxima →", avanca);
+  else if (estado.vidas > 0)  armaProxima("Continuar →", rodada);
+  else                        armaProxima("Ver resultado →", function(){ encerra(false); });
 }
 
 function avanca(){
@@ -903,6 +939,8 @@ function comeca(){
   estado.vidas = VIDAS;
   estado.recordeNovo = false;
   estado.vistos = [];
+  estado.proxima = null;
+  botaoProx.hidden = true;
   streakEl.textContent = "0";
   pintaVidas();
   rodada();
@@ -913,8 +951,12 @@ linhaB.addEventListener("click", function(){ responde(false); });
 el("again").addEventListener("click", comeca);
 el("reset").addEventListener("click", comeca);
 
+botaoProx.addEventListener("click", segueProxima);
+
 document.addEventListener("keydown", function(e){
+  if (e.target && e.target.tagName === "BUTTON") return;   /* botão em foco já responde sozinho */
   if (over.classList.contains("show")){ if (e.key === "Enter") comeca(); return; }
+  if (estado.travado){ if (e.key === "Enter") segueProxima(); return; }
   if (e.key === "ArrowUp")   responde(true);
   if (e.key === "ArrowDown") responde(false);
 });
