@@ -1,24 +1,30 @@
 <title>Qual Rendeu Mais?</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700;6..96,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <style>
   :root{
-    --ink:#0A0F16;
-    --ink-2:#121A24;
-    --ink-3:#1A2431;
-    --brass:#C6A15B;
-    --brass-dim:#8A7038;
-    --paper:#EDE8DD;
-    --mute:#8C97A8;
-    --up:#4FB286;
-    --down:#D8564C;
-    --rule:rgba(198,161,91,.22);
+    /* papel frio, sem virar creme */
+    --paper:#F1F2EE;
+    --paper-2:#E9EBE4;    /* hover da linha */
+    --paper-3:#D4D8CB;    /* trilho do eixo, sempre mais escuro que o hover */
+    --paper-4:#C3C8B9;
+    --ink:#101310;
+    --ink-soft:#5C6259;
+    --line:#CBCFC3;
+    --accent:#1D34E8;          /* azul de tinta, só para estrutura e marcações */
+    --up:#0B6E4F;
+    --up-soft:#BFDDD0;
+    --down:#BE2E1E;
+    --down-soft:#F0CCC6;
 
-    --f-display:"Bodoni Moda","Didot","Times New Roman",serif;
-    --f-body:"Archivo","Helvetica Neue",Arial,sans-serif;
-    --f-num:"IBM Plex Mono","SFMono-Regular",Menlo,monospace;
+    --f:"Archivo","Helvetica Neue",Arial,sans-serif;
+    --f-mono:"IBM Plex Mono","SFMono-Regular",Menlo,monospace;
+
+    --gutter:clamp(18px,5vw,72px);
   }
 
   *{box-sizing:border-box}
@@ -26,330 +32,349 @@
   body{
     margin:0;
     min-height:100dvh;
-    background:
-      radial-gradient(120% 80% at 50% -10%, #16202C 0%, rgba(10,15,22,0) 60%),
-      repeating-linear-gradient(180deg, rgba(198,161,91,.045) 0 1px, rgba(0,0,0,0) 1px 34px),
-      var(--ink);
-    color:var(--paper);
-    font-family:var(--f-body);
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--f);
+    font-variation-settings:"wdth" 100;
     -webkit-font-smoothing:antialiased;
   }
 
-  .stage{min-height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto}
+  .folha{min-height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto auto}
 
-  /* ---------- placar ---------- */
-  .board{
+  /* ---------- cabeçalho ---------- */
+  .masthead{
     display:flex;
-    align-items:baseline;
+    align-items:flex-end;
     justify-content:space-between;
-    gap:16px;
-    padding:16px clamp(16px,4vw,40px) 14px;
-    border-bottom:1px solid var(--rule);
+    gap:20px;
+    padding:clamp(16px,2.6vh,26px) var(--gutter) clamp(12px,1.8vh,18px);
+    border-bottom:1.5px solid var(--ink);
   }
-  .brand{
-    font-family:var(--f-display);
-    font-weight:900;
-    font-size:clamp(15px,2.4vw,21px);
+  .masthead h1{
     margin:0;
+    font-size:clamp(14px,2vw,18px);
+    font-weight:700;
+    font-variation-settings:"wdth" 112;
+    letter-spacing:-.01em;
+    text-transform:lowercase;
   }
-  .brand em{font-style:italic;color:var(--brass)}
-  .scores{display:flex;gap:clamp(16px,3vw,32px);font-family:var(--f-num);font-variant-numeric:tabular-nums}
-  .score{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-  .score span{
-    font-family:var(--f-body);
+  .masthead h1 span{color:var(--accent)}
+  .placar{display:flex;gap:clamp(16px,2.5vw,30px)}
+  .placar div{display:flex;align-items:baseline;gap:7px}
+  .placar span{
+    font-family:var(--f-mono);
     font-size:9.5px;
-    letter-spacing:.16em;
+    letter-spacing:.14em;
     text-transform:uppercase;
-    color:var(--mute);
-    white-space:nowrap;
+    color:var(--ink-soft);
   }
-  .score b{font-size:clamp(17px,2.6vw,24px);font-weight:600;line-height:1}
-  .score.streak b{color:var(--brass)}
+  .placar b{
+    font-size:clamp(18px,2.4vw,26px);
+    font-weight:800;
+    font-variation-settings:"wdth" 118;
+    font-variant-numeric:tabular-nums;
+    line-height:.9;
+  }
 
-  /* ---------- janela do tempo ---------- */
+  /* ---------- a janela, protagonista ---------- */
   .janela{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:4px;
-    padding:clamp(16px,3vh,30px) 20px clamp(12px,2vh,20px);
-    text-align:center;
+    padding:clamp(22px,5vh,54px) var(--gutter) clamp(18px,3.5vh,36px);
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:end;
+    gap:14px;
   }
-  .janela .rotulo{
+  .eyebrow{
+    grid-column:1/-1;
+    margin:0 0 clamp(6px,1.4vh,14px);
+    font-family:var(--f-mono);
     font-size:10px;
-    letter-spacing:.2em;
+    letter-spacing:.24em;
     text-transform:uppercase;
-    color:var(--mute);
+    color:var(--accent);
   }
   .periodo{
-    font-family:var(--f-display);
-    font-weight:900;
-    font-size:clamp(30px,6.5vw,60px);
-    line-height:1;
-    letter-spacing:.01em;
-    display:flex;
-    align-items:baseline;
-    gap:.28em;
+    margin:0;
+    font-size:clamp(38px,9.5vw,116px);
+    font-weight:800;
+    font-variation-settings:"wdth" 122;
+    letter-spacing:-.035em;
+    line-height:.86;
+    font-variant-numeric:tabular-nums;
+    text-wrap:balance;
   }
-  .periodo i{font-style:normal;color:var(--brass);font-size:.55em;transform:translateY(-.12em)}
-  .duracao{
-    font-family:var(--f-num);
-    font-size:clamp(11px,1.6vw,13px);
-    color:var(--mute);
-    letter-spacing:.04em;
+  .periodo span{display:block}
+  .periodo i{font-style:normal;color:var(--accent);padding-left:.12em}
+  .sub{
+    margin:0;
+    padding-bottom:.5em;
+    font-family:var(--f-mono);
+    font-size:clamp(10.5px,1.3vw,12.5px);
+    color:var(--ink-soft);
+    text-align:right;
+    white-space:nowrap;
   }
 
-  /* ---------- disputa ---------- */
-  .disputa{
+  /* ---------- as duas linhas, mesmo eixo ---------- */
+  .ringue{display:flex;flex-direction:column;justify-content:center;border-top:1px solid var(--line)}
+
+  .linha{
     position:relative;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    align-items:stretch;
-    min-height:0;
-    border-top:1px solid var(--rule);
-  }
-  .disputa::after{
-    content:"";
-    position:absolute;
-    inset:0 auto 0 50%;
-    width:1px;
-    background:linear-gradient(180deg,transparent,var(--rule) 12%,var(--rule) 88%,transparent);
-  }
-
-  .lado{
     appearance:none;
     background:transparent;
     border:0;
+    border-bottom:1px solid var(--line);
     font:inherit;
     color:inherit;
-    text-align:center;
+    text-align:left;
     cursor:pointer;
-    display:flex;
-    flex-direction:column;
+    width:100%;
+    display:grid;
+    grid-template-columns:minmax(140px,20%) minmax(0,1fr) clamp(118px,17%,212px);
     align-items:center;
-    justify-content:center;
-    gap:clamp(10px,1.8vh,20px);
-    padding:clamp(20px,4vh,46px) clamp(14px,3vw,34px);
-    transition:background .2s ease;
+    gap:clamp(14px,2.5vw,34px);
+    padding:clamp(16px,3.2vh,34px) var(--gutter);
+    transition:background .18s ease;
   }
-  .lado:hover:not(:disabled){background:rgba(198,161,91,.06)}
-  .lado:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
-  .lado:disabled{cursor:default}
-  .lado.venceu{background:rgba(79,178,134,.07)}
+  .linha::before{
+    content:"";
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:0;
+    background:var(--accent);
+    transition:width .18s ease;
+  }
+  .linha:hover:not(:disabled){background:var(--paper-2)}
+  .linha:hover:not(:disabled)::before{width:6px}
+  .linha:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+  .linha:disabled{cursor:default}
+  .linha.venceu::before{width:6px;background:var(--ink)}
 
   .tipo{
-    font-size:9.5px;
-    letter-spacing:.18em;
+    display:inline-block;
+    font-family:var(--f-mono);
+    font-size:9px;
+    letter-spacing:.16em;
     text-transform:uppercase;
-    color:var(--brass);
-    border:1px solid var(--rule);
-    border-radius:999px;
-    padding:4px 11px;
+    color:var(--ink-soft);
+    margin-bottom:5px;
   }
   .nome{
-    font-family:var(--f-display);
-    font-weight:700;
-    font-size:clamp(21px,3.6vw,38px);
-    line-height:1.06;
     margin:0;
-    text-wrap:balance;
-    max-width:15ch;
-    min-height:2.12em;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .oque{
-    font-size:clamp(9.5px,1.4vw,11.5px);
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--mute);
-    margin:0;
-    max-width:30ch;
-    min-height:1.4em;
-  }
-
-  /* retorno */
-  .retorno{
-    font-family:var(--f-num);
-    font-variant-numeric:tabular-nums;
-    font-weight:600;
-    font-size:clamp(26px,5vw,48px);
-    line-height:1;
+    font-size:clamp(21px,3.1vw,36px);
+    font-weight:800;
+    font-variation-settings:"wdth" 108;
     letter-spacing:-.02em;
-    color:var(--mute);
-    min-height:1em;
-    opacity:.45;
-    transition:opacity .3s ease, color .3s ease;
+    line-height:1;
+    text-wrap:balance;
   }
-  .retorno.revelado{opacity:1}
-  .retorno.pos{color:var(--up)}
-  .retorno.neg{color:var(--down)}
+  .cod{
+    display:block;
+    margin-top:6px;
+    font-family:var(--f-mono);
+    font-size:10.5px;
+    color:var(--ink-soft);
+  }
 
-  /* barra do retorno, escala compartilhada */
-  .trilho{
+  /* eixo compartilhado */
+  .eixo{
     position:relative;
-    width:min(330px,92%);
-    height:14px;
-    border:1px solid var(--rule);
-    background:rgba(198,161,91,.05);
+    height:clamp(30px,4.4vh,44px);
+    background:var(--paper-3);
   }
-  .zero{position:absolute;top:-4px;bottom:-4px;width:1px;background:rgba(237,232,221,.35)}
   .barra{
     position:absolute;
     top:0;bottom:0;
+    left:0;
     width:0;
-    background:linear-gradient(90deg, rgba(79,178,134,.55), var(--up));
+    background:var(--up-soft);
     transition:width .7s cubic-bezier(.22,1,.36,1), left .7s cubic-bezier(.22,1,.36,1);
   }
-  .barra.neg{background:linear-gradient(90deg, var(--down), rgba(216,86,76,.55))}
-  .cdi{
+  .linha.venceu .barra{background:var(--up)}
+  .barra.neg{background:var(--down-soft)}
+  .linha.venceu .barra.neg{background:var(--down)}
+  .zero{
     position:absolute;
-    top:-6px;
-    height:26px;
+    top:-6px;bottom:-6px;
+    width:1.5px;
+    background:var(--ink);
+  }
+  .marcaCDI{
+    position:absolute;
+    top:-6px;bottom:-6px;
     width:1px;
-    background:var(--brass);
+    background:var(--accent);
     opacity:0;
     transition:opacity .3s ease;
   }
-  .cdi.on{opacity:.95}
-  .cdi::after{
-    content:"CDI";
+  .marcaCDI.on{opacity:1}
+  .marcaCDI i{
     position:absolute;
-    top:-12px;
+    top:-14px;
     left:50%;
     transform:translateX(-50%);
-    font-family:var(--f-body);
-    font-size:8px;
-    letter-spacing:.14em;
-    color:var(--brass);
-  }
-  .legenda{
-    font-family:var(--f-num);
-    font-size:10.5px;
-    color:var(--mute);
-    min-height:1.3em;
-    letter-spacing:.02em;
+    font-family:var(--f-mono);
+    font-style:normal;
+    font-size:8.5px;
+    letter-spacing:.12em;
+    color:var(--accent);
   }
 
-  .escolher{
-    font-size:11px;
-    font-weight:600;
-    letter-spacing:.16em;
-    text-transform:uppercase;
-    color:var(--paper);
-    border:1px solid var(--rule);
-    border-radius:2px;
-    padding:11px 22px;
-    transition:background .18s ease, border-color .18s ease, color .18s ease;
+  /* número, protagonista da direita */
+  .valor{text-align:right}
+  .ret{
+    font-size:clamp(22px,3.7vw,48px);
+    font-weight:800;
+    font-variation-settings:"wdth" 118;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.04em;
+    line-height:.9;
+    color:var(--paper-4);
+    transition:color .3s ease;
   }
-  .lado:hover:not(:disabled) .escolher{background:rgba(198,161,91,.14);border-color:var(--brass);color:var(--brass)}
-  .lado:disabled .escolher{opacity:0}
+  .ret.pos{color:var(--up)}
+  .ret.neg{color:var(--down)}
+  .mil{
+    margin-top:7px;
+    font-family:var(--f-mono);
+    font-size:10px;
+    color:var(--ink-soft);
+    min-height:1.2em;
+    white-space:nowrap;
+  }
 
-  /* selo central */
-  .vs{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    z-index:3;
-    width:56px;
-    aspect-ratio:1;
+  /* ---------- veredito ---------- */
+  .veredito{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    min-height:clamp(52px,7.5vh,68px);
+    padding:12px var(--gutter);
+    border-top:1.5px solid var(--ink);
+    background:var(--paper);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .veredito.on{opacity:1}
+  .selo{
+    flex:none;
+    width:30px;height:30px;
     border-radius:50%;
     display:grid;
     place-items:center;
+    font-size:15px;
+    font-weight:700;
+    color:var(--paper);
     background:var(--ink);
-    border:1px solid var(--brass-dim);
-    font-family:var(--f-display);
-    font-weight:900;
-    font-style:italic;
-    font-size:18px;
-    color:var(--brass);
-    box-shadow:0 0 0 7px var(--ink);
-    transition:transform .3s cubic-bezier(.34,1.56,.64,1), background .3s ease, color .3s ease, border-color .3s ease;
   }
-  .vs.verdict{transform:translate(-50%,-50%) scale(1.12);font-style:normal;font-size:23px;font-family:var(--f-body)}
-  .vs.ok{background:var(--up);border-color:var(--up);color:#07130E}
-  .vs.no{background:var(--down);border-color:var(--down);color:#1B0705}
+  .selo.ok{background:var(--up)}
+  .selo.no{background:var(--down)}
+  .veredito p{
+    margin:0;
+    font-family:var(--f-mono);
+    font-size:clamp(11px,1.4vw,13px);
+    line-height:1.5;
+    color:var(--ink-soft);
+  }
+  .veredito b{color:var(--ink);font-weight:500}
 
-  /* rodapé */
+  /* ---------- rodapé ---------- */
   .foot{
     display:flex;
     justify-content:space-between;
     align-items:center;
     gap:14px;
-    padding:12px clamp(16px,4vw,40px) 16px;
-    border-top:1px solid var(--rule);
-    font-size:10px;
-    letter-spacing:.1em;
-    text-transform:uppercase;
-    color:var(--mute);
+    padding:11px var(--gutter) 14px;
+    border-top:1px solid var(--line);
+    font-family:var(--f-mono);
+    font-size:9.5px;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
   }
   .foot button{
     appearance:none;background:none;border:none;padding:0;
-    font:inherit;letter-spacing:.1em;color:var(--mute);
-    cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+    font:inherit;color:var(--accent);cursor:pointer;
+    text-decoration:underline;text-underline-offset:3px;
   }
-  .foot button:hover{color:var(--brass)}
+  .foot button:hover{color:var(--ink)}
 
-  /* fim de jogo */
+  /* ---------- fim ---------- */
   .over{
     position:fixed;
     inset:0;
     z-index:10;
     display:grid;
     place-items:center;
-    padding:24px;
-    background:rgba(10,15,22,.94);
-    text-align:center;
+    padding:var(--gutter);
+    background:var(--paper);
     opacity:0;
     pointer-events:none;
     transition:opacity .3s ease;
   }
   .over.show{opacity:1;pointer-events:auto}
-  .over-inner{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:38ch}
-  .over h2{
-    font-family:var(--f-display);
-    font-weight:900;
-    font-size:clamp(30px,7vw,58px);
-    margin:0;line-height:1;text-wrap:balance;
-  }
-  .over .final{
-    font-family:var(--f-num);
-    font-size:clamp(44px,12vw,86px);
-    font-weight:600;
-    color:var(--brass);
-    line-height:1;
-    font-variant-numeric:tabular-nums;
-  }
-  .over p{margin:0;color:var(--mute);font-size:13px;line-height:1.6}
-  .over .again{
-    margin-top:8px;
-    appearance:none;
-    font-family:var(--f-body);
-    font-size:12px;
-    font-weight:600;
-    letter-spacing:.14em;
+  .over-inner{max-width:22ch}
+  .over .rot{
+    font-family:var(--f-mono);
+    font-size:10px;
+    letter-spacing:.24em;
     text-transform:uppercase;
-    background:var(--brass);
-    border:1px solid var(--brass);
-    border-radius:2px;
-    color:#100A02;
-    padding:14px 30px;
-    cursor:pointer;
+    color:var(--accent);
+    margin:0 0 10px;
   }
-  .over .again:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+  .over h2{
+    margin:0;
+    font-size:clamp(40px,11vw,120px);
+    font-weight:800;
+    font-variation-settings:"wdth" 122;
+    letter-spacing:-.04em;
+    line-height:.85;
+  }
+  .over .placa{
+    font-variant-numeric:tabular-nums;
+    color:var(--accent);
+  }
+  .over p{
+    margin:18px 0 0;
+    font-family:var(--f-mono);
+    font-size:12px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    max-width:34ch;
+  }
+  .over button{
+    margin-top:26px;
+    appearance:none;
+    font-family:var(--f);
+    font-size:12px;
+    font-weight:700;
+    font-variation-settings:"wdth" 112;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    background:var(--ink);
+    border:1.5px solid var(--ink);
+    color:var(--paper);
+    padding:15px 30px;
+    cursor:pointer;
+    transition:background .18s ease, color .18s ease;
+  }
+  .over button:hover{background:var(--accent);border-color:var(--accent)}
 
-  @media (max-width:760px){
-    .disputa{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
-    .disputa::after{inset:50% 0 auto 0;width:auto;height:1px;background:linear-gradient(90deg,transparent,var(--rule) 12%,var(--rule) 88%,transparent)}
-    .lado{gap:8px;padding:16px}
-    .lado:first-child{padding-bottom:40px}
-    .lado:last-child{padding-top:40px}
-    .nome{max-width:20ch;font-size:clamp(19px,5.4vw,28px)}
-    .retorno{font-size:clamp(24px,7vw,36px)}
-    .vs{width:44px;font-size:15px;box-shadow:0 0 0 6px var(--ink)}
-    .periodo{font-size:clamp(26px,9vw,44px)}
+  @media (max-width:820px){
+    .janela{grid-template-columns:1fr}
+    .sub{text-align:left;padding-bottom:0;white-space:normal}
+    .linha{
+      grid-template-columns:1fr auto;
+      grid-template-areas:"quem valor" "eixo eixo";
+      gap:10px 14px;
+      padding:16px var(--gutter);
+    }
+    .quem{grid-area:quem}
+    .valor{grid-area:valor}
+    .eixo{grid-area:eixo;height:26px;margin-top:4px}
+    .nome{font-size:clamp(19px,5.4vw,26px)}
+    .ret{font-size:clamp(26px,8vw,38px)}
+    .veredito{align-items:flex-start}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -357,65 +382,74 @@
   }
 </style>
 
-<div class="stage">
-  <header class="board">
-    <h1 class="brand">Qual <em>rendeu mais</em>?</h1>
-    <div class="scores">
-      <div class="score streak"><span>Sequência</span><b id="streak">0</b></div>
-      <div class="score"><span>Recorde</span><b id="best">0</b></div>
+<div class="folha">
+  <header class="masthead">
+    <h1>qual rendeu mais<span>?</span></h1>
+    <div class="placar">
+      <div><span>seq</span><b id="streak">0</b></div>
+      <div><span>recorde</span><b id="best">0</b></div>
     </div>
   </header>
 
   <section class="janela">
-    <span class="rotulo">Janela sorteada</span>
-    <div class="periodo" id="periodo">— <i>→</i> —</div>
-    <span class="duracao" id="duracao">—</span>
+    <p class="eyebrow">Janela sorteada</p>
+    <h2 class="periodo" id="periodo"><span>—</span></h2>
+    <p class="sub" id="duracao">—</p>
   </section>
 
-  <main class="disputa">
-    <button class="lado" id="ladoA" type="button">
-      <span class="tipo" id="tipoA">—</span>
-      <h2 class="nome" id="nomeA">—</h2>
-      <p class="oque" id="oqueA">—</p>
-      <div class="retorno" id="retA">?</div>
-      <div class="trilho">
+  <main class="ringue">
+    <button class="linha" id="linhaA" type="button">
+      <div class="quem">
+        <span class="tipo" id="tipoA">—</span>
+        <h3 class="nome" id="nomeA">—</h3>
+        <span class="cod" id="oqueA">—</span>
+      </div>
+      <div class="eixo">
         <div class="barra" id="barA"></div>
         <div class="zero" id="zeroA"></div>
-        <div class="cdi" id="cdiA"></div>
+        <div class="marcaCDI" id="cdiA"><i>CDI</i></div>
       </div>
-      <div class="legenda" id="legA">&nbsp;</div>
-      <span class="escolher">Rendeu mais</span>
+      <div class="valor">
+        <div class="ret" id="retA">?</div>
+        <div class="mil" id="legA"></div>
+      </div>
     </button>
 
-    <div class="vs" id="vs" aria-hidden="true">vs</div>
-
-    <button class="lado" id="ladoB" type="button">
-      <span class="tipo" id="tipoB">—</span>
-      <h2 class="nome" id="nomeB">—</h2>
-      <p class="oque" id="oqueB">—</p>
-      <div class="retorno" id="retB">?</div>
-      <div class="trilho">
+    <button class="linha" id="linhaB" type="button">
+      <div class="quem">
+        <span class="tipo" id="tipoB">—</span>
+        <h3 class="nome" id="nomeB">—</h3>
+        <span class="cod" id="oqueB">—</span>
+      </div>
+      <div class="eixo">
         <div class="barra" id="barB"></div>
         <div class="zero" id="zeroB"></div>
-        <div class="cdi" id="cdiB"></div>
+        <div class="marcaCDI" id="cdiB"><i>CDI</i></div>
       </div>
-      <div class="legenda" id="legB">&nbsp;</div>
-      <span class="escolher">Rendeu mais</span>
+      <div class="valor">
+        <div class="ret" id="retB">?</div>
+        <div class="mil" id="legB"></div>
+      </div>
     </button>
   </main>
 
+  <div class="veredito" id="veredito">
+    <span class="selo" id="selo">·</span>
+    <p id="vtexto"></p>
+  </div>
+
   <footer class="foot">
     <span>Retornos em reais, séries ajustadas · dados Mais Retorno · rentabilidade passada não é promessa</span>
-    <button id="reset" type="button">Reiniciar</button>
+    <button id="reset" type="button">reiniciar</button>
   </footer>
 </div>
 
 <div class="over" id="over">
   <div class="over-inner">
-    <h2 id="overTitle">Fim de jogo</h2>
-    <div class="final" id="overScore">0</div>
+    <p class="rot" id="overRot">Fim de jogo</p>
+    <h2><span id="overTitle">Errou essa</span><br><span class="placa" id="overScore">0</span></h2>
     <p id="overMsg"></p>
-    <button class="again" id="again" type="button">Jogar de novo</button>
+    <button id="again" type="button">Jogar de novo</button>
   </div>
 </div>
 
@@ -488,43 +522,42 @@ var ATIVOS = [
 var CDI = ATIVOS[0];
 
 var el = function(id){ return document.getElementById(id); };
-var streakEl = el("streak"), bestEl = el("best"), vsEl = el("vs");
-var ladoA = el("ladoA"), ladoB = el("ladoB"), over = el("over");
+var streakEl = el("streak"), bestEl = el("best");
+var linhaA = el("linhaA"), linhaB = el("linhaB");
+var veredito = el("veredito"), selo = el("selo"), vtexto = el("vtexto"), over = el("over");
 
-var estado = { a:0, b:0, A:null, B:null, streak:0, best:0, recordeNovo:false, travado:true, vistos:[] };
+var estado = { i:0, f:0, A:null, B:null, streak:0, best:0, recordeNovo:false, travado:true, vistos:[] };
 
 /* ---------- números ---------- */
 function retorno(ativo, i, f){ return ativo.v[f - ativo.i0] / ativo.v[i - ativo.i0] - 1; }
 function cobre(ativo, i, f){ return ativo.i0 <= i && ativo.fim >= f; }
 
-function pct(r){
+function modoDe(r){ return r >= 9 ? "x" : "p"; }   /* acima de +900% o número fica longo demais */
+function fmt(r, modo){
+  if (modo === "x") return "×" + (1 + r).toFixed(1).replace(".", ",");
   var x = r * 100;
-  var casas = Math.abs(x) >= 1000 ? 0 : Math.abs(x) >= 100 ? 0 : 1;
+  var casas = Math.abs(x) >= 100 ? 0 : 1;
   return (x >= 0 ? "+" : "") + x.toFixed(casas).replace(".", ",") + "%";
 }
+function pct(r){ return fmt(r, modoDe(r)); }
+function reais(v){ return "R$ " + Math.round(v).toLocaleString("pt-BR"); }
 
-function anosDe(i, f){
-  var n = f - i;
-  if (f === 13) n = 12 - i + 0.67;          /* último ponto é set/2026 */
-  return n;
-}
 function textoDuracao(i, f){
-  var n = anosDe(i, f);
+  var n = f - i;
+  if (f === 13) n = 12 - i + 0.67;
   if (n === Math.round(n)) return n + (n === 1 ? " ano" : " anos");
   return n.toFixed(1).replace(".", ",") + " anos";
 }
 
 /* ---------- sorteio ---------- */
 function sorteiaRodada(){
-  for (var tentativa = 0; tentativa < 400; tentativa++){
-    var dur = 1 + Math.floor(Math.random() * 8);        /* 1 a 8 anos */
+  for (var t = 0; t < 400; t++){
+    var dur = 1 + Math.floor(Math.random() * 8);
     var i = Math.floor(Math.random() * (13 - dur + 1));
     var f = i + dur;
     if (!cobre(CDI, i, f)) continue;
 
-    var pool = ATIVOS.filter(function(at){
-      return cobre(at, i, f) && at !== CDI;
-    });
+    var pool = ATIVOS.filter(function(at){ return at !== CDI && cobre(at, i, f); });
     if (pool.length < 2) continue;
 
     var A = pool[Math.floor(Math.random() * pool.length)];
@@ -534,9 +567,7 @@ function sorteiaRodada(){
     var par = [A.nome, B.nome].sort().join("|");
     if (estado.vistos.indexOf(par) !== -1) continue;
 
-    var rA = retorno(A, i, f), rB = retorno(B, i, f);
-    /* nada de empate técnico: a diferença precisa dar para sentir */
-    if (Math.abs(rA - rB) < 0.06) continue;
+    if (Math.abs(retorno(A, i, f) - retorno(B, i, f)) < 0.06) continue;
 
     estado.vistos.push(par);
     if (estado.vistos.length > 40) estado.vistos.shift();
@@ -546,32 +577,33 @@ function sorteiaRodada(){
 }
 
 /* ---------- desenho ---------- */
-function preenche(letra, ativo){
-  el("tipo" + letra).textContent = ativo.tipo;
-  el("nome" + letra).textContent = ativo.nome;
-  el("oque" + letra).textContent = ativo.oque;
-  el("ret" + letra).textContent = "?";
-  el("ret" + letra).className = "retorno";
-  el("bar" + letra).style.width = "0%";
-  el("bar" + letra).className = "barra";
-  el("cdi" + letra).classList.remove("on");
-  el("leg" + letra).innerHTML = "&nbsp;";
+function preenche(l, ativo){
+  el("tipo" + l).textContent = ativo.tipo;
+  el("nome" + l).textContent = ativo.nome;
+  el("oque" + l).textContent = ativo.oque;
+  var r = el("ret" + l);
+  r.textContent = "?";
+  r.className = "ret";
+  el("leg" + l).textContent = "";
+  var b = el("bar" + l);
+  b.className = "barra";
+  b.style.width = "0%";
+  b.style.left = "50%";
+  el("zero" + l).style.left = "50%";
+  el("cdi" + l).classList.remove("on");
 }
 
-/* escala compartilhada: comprimento por log(1+r), que segura o bitcoin sem achatar o resto */
+/* escala por log(1+r): segura o bitcoin sem achatar o resto */
 function forca(r){ return Math.log(1 + Math.max(r, -0.999)); }
 
-function posicionaBarras(rA, rB, rCDI){
-  var vals = [rA, rB, rCDI].map(forca);
-  var maxPos = Math.max(0.0001, Math.max.apply(null, vals.concat([0])));
-  var maxNeg = Math.max(0.0001, -Math.min.apply(null, vals.concat([0])));
-  /* o zero fica proporcional ao espaço que a parte negativa precisa */
-  var zero = maxNeg / (maxNeg + maxPos);
-  zero = Math.max(0.06, Math.min(0.94, zero));
+function desenhaEixo(rA, rB, rCDI){
+  var vals = [forca(rA), forca(rB), forca(rCDI), 0];
+  var maxPos = Math.max(0.0001, Math.max.apply(null, vals));
+  var maxNeg = Math.max(0.0001, -Math.min.apply(null, vals));
+  var zero = Math.max(0.05, Math.min(0.95, maxNeg / (maxNeg + maxPos)));
 
   ["A", "B"].forEach(function(l, k){
-    var r = k === 0 ? rA : rB;
-    var s = forca(r);
+    var s = forca(k === 0 ? rA : rB);
     var barra = el("bar" + l);
     el("zero" + l).style.left = (zero * 100) + "%";
     if (s >= 0){
@@ -585,25 +617,24 @@ function posicionaBarras(rA, rB, rCDI){
       barra.style.width = (larg * 100) + "%";
     }
     var sc = forca(rCDI);
-    var posCDI = sc >= 0 ? zero + (1 - zero) * (sc / maxPos) : zero - zero * (-sc / maxNeg);
-    var marca = el("cdi" + l);
-    marca.style.left = (posCDI * 100) + "%";
-    marca.classList.add("on");
+    var pos = sc >= 0 ? zero + (1 - zero) * (sc / maxPos) : zero - zero * (-sc / maxNeg);
+    var m = el("cdi" + l);
+    m.style.left = (pos * 100) + "%";
+    m.classList.add("on");
   });
 }
 
 function giraRetorno(node, alvo, ms){
-  var f = pct(alvo);
-  node.className = "retorno revelado " + (alvo >= 0 ? "pos" : "neg");
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){ node.textContent = f; return; }
+  var modo = modoDe(alvo), fim = fmt(alvo, modo);
+  node.className = "ret " + (alvo >= 0 ? "pos" : "neg");
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){ node.textContent = fim; return; }
   var t0 = performance.now();
-  function passo(t){
-    var k = Math.min(1, (t - t0) / ms);
-    var atual = alvo * (1 - Math.pow(1 - k, 3));
-    node.textContent = k < 1 ? pct(atual) : f;
+  (function passo(t){
+    var k = Math.min(1, ((t || performance.now()) - t0) / ms);
+    /* o formato é decidido pelo valor final, para o número não trocar de cara no meio */
+    node.textContent = k < 1 ? fmt(alvo * (1 - Math.pow(1 - k, 3)), modo) : fim;
     if (k < 1) requestAnimationFrame(passo);
-  }
-  requestAnimationFrame(passo);
+  })();
 }
 
 /* ---------- rodada ---------- */
@@ -612,27 +643,24 @@ function rodada(){
   if (!r){ encerra(true); return; }
   estado.i = r.i; estado.f = r.f; estado.A = r.A; estado.B = r.B;
 
-  var inicio = r.i === 13 ? "hoje" : PONTOS[r.i];
-  var fim = PONTOS[r.f];
-  el("periodo").innerHTML = inicio + ' <i>→</i> ' + fim;
+  el("periodo").innerHTML = PONTOS[r.i] + ' <i>→</i> ' + PONTOS[r.f];
   el("duracao").textContent = textoDuracao(r.i, r.f) + " · mesma janela para os dois";
 
   preenche("A", r.A);
   preenche("B", r.B);
-  ladoA.classList.remove("venceu");
-  ladoB.classList.remove("venceu");
-  ladoA.disabled = false;
-  ladoB.disabled = false;
-  vsEl.className = "vs";
-  vsEl.textContent = "vs";
+  linhaA.classList.remove("venceu");
+  linhaB.classList.remove("venceu");
+  linhaA.disabled = false;
+  linhaB.disabled = false;
+  veredito.classList.remove("on");
   estado.travado = false;
 }
 
 function responde(escolheuA){
   if (estado.travado) return;
   estado.travado = true;
-  ladoA.disabled = true;
-  ladoB.disabled = true;
+  linhaA.disabled = true;
+  linhaB.disabled = true;
 
   var rA = retorno(estado.A, estado.i, estado.f);
   var rB = retorno(estado.B, estado.i, estado.f);
@@ -641,23 +669,19 @@ function responde(escolheuA){
 
   giraRetorno(el("retA"), rA, 800);
   giraRetorno(el("retB"), rB, 800);
-  posicionaBarras(rA, rB, rCDI);
+  desenhaEixo(rA, rB, rCDI);
+  el("legA").textContent = "R$ 1.000 → " + reais(1000 * (1 + rA));
+  el("legB").textContent = "R$ 1.000 → " + reais(1000 * (1 + rB));
+  (rA > rB ? linhaA : linhaB).classList.add("venceu");
 
-  (rA > rB ? ladoA : ladoB).classList.add("venceu");
-  el("legA").textContent = legenda(rA, rCDI);
-  el("legB").textContent = legenda(rB, rCDI);
+  var venc = rA > rB ? estado.A : estado.B;
+  selo.className = "selo " + (acertou ? "ok" : "no");
+  selo.textContent = acertou ? "✓" : "✕";
+  vtexto.innerHTML = (acertou ? "Certo. " : "Errou. ") + "<b>" + venc.nome + "</b> rendeu mais no período. " +
+                     "O CDI fez <b>" + pct(rCDI) + "</b> na mesma janela.";
+  veredito.classList.add("on");
 
-  setTimeout(function(){
-    vsEl.className = "vs verdict " + (acertou ? "ok" : "no");
-    vsEl.textContent = acertou ? "✓" : "✕";
-    setTimeout(function(){ acertou ? avanca() : encerra(false); }, 1300);
-  }, 850);
-}
-
-function legenda(r, rCDI){
-  var mult = (1 + r);
-  var txt = "R$ 1.000 viraram R$ " + Math.round(1000 * mult).toLocaleString("pt-BR");
-  return txt + (r > rCDI ? " · ganhou do CDI" : " · perdeu do CDI");
+  setTimeout(function(){ acertou ? avanca() : encerra(false); }, 2100);
 }
 
 function avanca(){
@@ -669,22 +693,20 @@ function avanca(){
     bestEl.textContent = estado.best;
     try { localStorage.setItem("qrm-recorde", String(estado.best)); } catch (e) {}
   }
-  setTimeout(rodada, 120);
+  rodada();
 }
 
 function encerra(semRodada){
   var rA = retorno(estado.A, estado.i, estado.f);
   var rB = retorno(estado.B, estado.i, estado.f);
-  var venc = rA > rB ? estado.A : estado.B;
-  var perd = rA > rB ? estado.B : estado.A;
-  var rv = Math.max(rA, rB), rp = Math.min(rA, rB);
+  var venc = rA > rB ? estado.A : estado.B, perd = rA > rB ? estado.B : estado.A;
 
-  el("overTitle").textContent = semRodada ? "Acabaram as combinações"
-                              : estado.streak === 0 ? "Começou mal" : "Errou essa";
+  el("overRot").textContent = semRodada ? "Acabou a base" : "Fim de jogo";
+  el("overTitle").textContent = semRodada ? "Você viu tudo" : (estado.streak === 0 ? "Começou mal" : "Errou essa");
   el("overScore").textContent = estado.streak;
   el("overMsg").textContent = semRodada
-    ? "Você já viu tudo o que a base tem para hoje."
-    : venc.nome + " fez " + pct(rv) + " contra " + pct(rp) + " de " + perd.nome +
+    ? "Não há mais combinações inéditas para hoje."
+    : venc.nome + " fez " + pct(Math.max(rA, rB)) + " contra " + pct(Math.min(rA, rB)) + " de " + perd.nome +
       " entre " + PONTOS[estado.i] + " e " + PONTOS[estado.f] + ". " +
       (estado.recordeNovo ? "Novo recorde." : "Seu recorde é " + estado.best + ".");
   over.classList.add("show");
@@ -700,15 +722,15 @@ function comeca(){
   rodada();
 }
 
-ladoA.addEventListener("click", function(){ responde(true); });
-ladoB.addEventListener("click", function(){ responde(false); });
+linhaA.addEventListener("click", function(){ responde(true); });
+linhaB.addEventListener("click", function(){ responde(false); });
 el("again").addEventListener("click", comeca);
 el("reset").addEventListener("click", comeca);
 
 document.addEventListener("keydown", function(e){
   if (over.classList.contains("show")){ if (e.key === "Enter") comeca(); return; }
-  if (e.key === "ArrowLeft")  responde(true);
-  if (e.key === "ArrowRight") responde(false);
+  if (e.key === "ArrowUp")   responde(true);
+  if (e.key === "ArrowDown") responde(false);
 });
 
 try {
