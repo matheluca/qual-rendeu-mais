@@ -1,0 +1,720 @@
+<title>Qual Rendeu Mais?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700;6..96,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root{
+    --ink:#0A0F16;
+    --ink-2:#121A24;
+    --ink-3:#1A2431;
+    --brass:#C6A15B;
+    --brass-dim:#8A7038;
+    --paper:#EDE8DD;
+    --mute:#8C97A8;
+    --up:#4FB286;
+    --down:#D8564C;
+    --rule:rgba(198,161,91,.22);
+
+    --f-display:"Bodoni Moda","Didot","Times New Roman",serif;
+    --f-body:"Archivo","Helvetica Neue",Arial,sans-serif;
+    --f-num:"IBM Plex Mono","SFMono-Regular",Menlo,monospace;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    min-height:100dvh;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #16202C 0%, rgba(10,15,22,0) 60%),
+      repeating-linear-gradient(180deg, rgba(198,161,91,.045) 0 1px, rgba(0,0,0,0) 1px 34px),
+      var(--ink);
+    color:var(--paper);
+    font-family:var(--f-body);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .stage{min-height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto}
+
+  /* ---------- placar ---------- */
+  .board{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    padding:16px clamp(16px,4vw,40px) 14px;
+    border-bottom:1px solid var(--rule);
+  }
+  .brand{
+    font-family:var(--f-display);
+    font-weight:900;
+    font-size:clamp(15px,2.4vw,21px);
+    margin:0;
+  }
+  .brand em{font-style:italic;color:var(--brass)}
+  .scores{display:flex;gap:clamp(16px,3vw,32px);font-family:var(--f-num);font-variant-numeric:tabular-nums}
+  .score{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .score span{
+    font-family:var(--f-body);
+    font-size:9.5px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--mute);
+    white-space:nowrap;
+  }
+  .score b{font-size:clamp(17px,2.6vw,24px);font-weight:600;line-height:1}
+  .score.streak b{color:var(--brass)}
+
+  /* ---------- janela do tempo ---------- */
+  .janela{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    padding:clamp(16px,3vh,30px) 20px clamp(12px,2vh,20px);
+    text-align:center;
+  }
+  .janela .rotulo{
+    font-size:10px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--mute);
+  }
+  .periodo{
+    font-family:var(--f-display);
+    font-weight:900;
+    font-size:clamp(30px,6.5vw,60px);
+    line-height:1;
+    letter-spacing:.01em;
+    display:flex;
+    align-items:baseline;
+    gap:.28em;
+  }
+  .periodo i{font-style:normal;color:var(--brass);font-size:.55em;transform:translateY(-.12em)}
+  .duracao{
+    font-family:var(--f-num);
+    font-size:clamp(11px,1.6vw,13px);
+    color:var(--mute);
+    letter-spacing:.04em;
+  }
+
+  /* ---------- disputa ---------- */
+  .disputa{
+    position:relative;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:stretch;
+    min-height:0;
+    border-top:1px solid var(--rule);
+  }
+  .disputa::after{
+    content:"";
+    position:absolute;
+    inset:0 auto 0 50%;
+    width:1px;
+    background:linear-gradient(180deg,transparent,var(--rule) 12%,var(--rule) 88%,transparent);
+  }
+
+  .lado{
+    appearance:none;
+    background:transparent;
+    border:0;
+    font:inherit;
+    color:inherit;
+    text-align:center;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(10px,1.8vh,20px);
+    padding:clamp(20px,4vh,46px) clamp(14px,3vw,34px);
+    transition:background .2s ease;
+  }
+  .lado:hover:not(:disabled){background:rgba(198,161,91,.06)}
+  .lado:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
+  .lado:disabled{cursor:default}
+  .lado.venceu{background:rgba(79,178,134,.07)}
+
+  .tipo{
+    font-size:9.5px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--brass);
+    border:1px solid var(--rule);
+    border-radius:999px;
+    padding:4px 11px;
+  }
+  .nome{
+    font-family:var(--f-display);
+    font-weight:700;
+    font-size:clamp(21px,3.6vw,38px);
+    line-height:1.06;
+    margin:0;
+    text-wrap:balance;
+    max-width:15ch;
+    min-height:2.12em;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .oque{
+    font-size:clamp(9.5px,1.4vw,11.5px);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--mute);
+    margin:0;
+    max-width:30ch;
+    min-height:1.4em;
+  }
+
+  /* retorno */
+  .retorno{
+    font-family:var(--f-num);
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
+    font-size:clamp(26px,5vw,48px);
+    line-height:1;
+    letter-spacing:-.02em;
+    color:var(--mute);
+    min-height:1em;
+    opacity:.45;
+    transition:opacity .3s ease, color .3s ease;
+  }
+  .retorno.revelado{opacity:1}
+  .retorno.pos{color:var(--up)}
+  .retorno.neg{color:var(--down)}
+
+  /* barra do retorno, escala compartilhada */
+  .trilho{
+    position:relative;
+    width:min(330px,92%);
+    height:14px;
+    border:1px solid var(--rule);
+    background:rgba(198,161,91,.05);
+  }
+  .zero{position:absolute;top:-4px;bottom:-4px;width:1px;background:rgba(237,232,221,.35)}
+  .barra{
+    position:absolute;
+    top:0;bottom:0;
+    width:0;
+    background:linear-gradient(90deg, rgba(79,178,134,.55), var(--up));
+    transition:width .7s cubic-bezier(.22,1,.36,1), left .7s cubic-bezier(.22,1,.36,1);
+  }
+  .barra.neg{background:linear-gradient(90deg, var(--down), rgba(216,86,76,.55))}
+  .cdi{
+    position:absolute;
+    top:-6px;
+    height:26px;
+    width:1px;
+    background:var(--brass);
+    opacity:0;
+    transition:opacity .3s ease;
+  }
+  .cdi.on{opacity:.95}
+  .cdi::after{
+    content:"CDI";
+    position:absolute;
+    top:-12px;
+    left:50%;
+    transform:translateX(-50%);
+    font-family:var(--f-body);
+    font-size:8px;
+    letter-spacing:.14em;
+    color:var(--brass);
+  }
+  .legenda{
+    font-family:var(--f-num);
+    font-size:10.5px;
+    color:var(--mute);
+    min-height:1.3em;
+    letter-spacing:.02em;
+  }
+
+  .escolher{
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:2px;
+    padding:11px 22px;
+    transition:background .18s ease, border-color .18s ease, color .18s ease;
+  }
+  .lado:hover:not(:disabled) .escolher{background:rgba(198,161,91,.14);border-color:var(--brass);color:var(--brass)}
+  .lado:disabled .escolher{opacity:0}
+
+  /* selo central */
+  .vs{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    z-index:3;
+    width:56px;
+    aspect-ratio:1;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:var(--ink);
+    border:1px solid var(--brass-dim);
+    font-family:var(--f-display);
+    font-weight:900;
+    font-style:italic;
+    font-size:18px;
+    color:var(--brass);
+    box-shadow:0 0 0 7px var(--ink);
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1), background .3s ease, color .3s ease, border-color .3s ease;
+  }
+  .vs.verdict{transform:translate(-50%,-50%) scale(1.12);font-style:normal;font-size:23px;font-family:var(--f-body)}
+  .vs.ok{background:var(--up);border-color:var(--up);color:#07130E}
+  .vs.no{background:var(--down);border-color:var(--down);color:#1B0705}
+
+  /* rodapé */
+  .foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    padding:12px clamp(16px,4vw,40px) 16px;
+    border-top:1px solid var(--rule);
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--mute);
+  }
+  .foot button{
+    appearance:none;background:none;border:none;padding:0;
+    font:inherit;letter-spacing:.1em;color:var(--mute);
+    cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  }
+  .foot button:hover{color:var(--brass)}
+
+  /* fim de jogo */
+  .over{
+    position:fixed;
+    inset:0;
+    z-index:10;
+    display:grid;
+    place-items:center;
+    padding:24px;
+    background:rgba(10,15,22,.94);
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .over.show{opacity:1;pointer-events:auto}
+  .over-inner{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:38ch}
+  .over h2{
+    font-family:var(--f-display);
+    font-weight:900;
+    font-size:clamp(30px,7vw,58px);
+    margin:0;line-height:1;text-wrap:balance;
+  }
+  .over .final{
+    font-family:var(--f-num);
+    font-size:clamp(44px,12vw,86px);
+    font-weight:600;
+    color:var(--brass);
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  .over p{margin:0;color:var(--mute);font-size:13px;line-height:1.6}
+  .over .again{
+    margin-top:8px;
+    appearance:none;
+    font-family:var(--f-body);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    background:var(--brass);
+    border:1px solid var(--brass);
+    border-radius:2px;
+    color:#100A02;
+    padding:14px 30px;
+    cursor:pointer;
+  }
+  .over .again:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+
+  @media (max-width:760px){
+    .disputa{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+    .disputa::after{inset:50% 0 auto 0;width:auto;height:1px;background:linear-gradient(90deg,transparent,var(--rule) 12%,var(--rule) 88%,transparent)}
+    .lado{gap:8px;padding:16px}
+    .lado:first-child{padding-bottom:40px}
+    .lado:last-child{padding-top:40px}
+    .nome{max-width:20ch;font-size:clamp(19px,5.4vw,28px)}
+    .retorno{font-size:clamp(24px,7vw,36px)}
+    .vs{width:44px;font-size:15px;box-shadow:0 0 0 6px var(--ink)}
+    .periodo{font-size:clamp(26px,9vw,44px)}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition-duration:.01ms !important;animation-duration:.01ms !important}
+  }
+</style>
+
+<div class="stage">
+  <header class="board">
+    <h1 class="brand">Qual <em>rendeu mais</em>?</h1>
+    <div class="scores">
+      <div class="score streak"><span>Sequência</span><b id="streak">0</b></div>
+      <div class="score"><span>Recorde</span><b id="best">0</b></div>
+    </div>
+  </header>
+
+  <section class="janela">
+    <span class="rotulo">Janela sorteada</span>
+    <div class="periodo" id="periodo">— <i>→</i> —</div>
+    <span class="duracao" id="duracao">—</span>
+  </section>
+
+  <main class="disputa">
+    <button class="lado" id="ladoA" type="button">
+      <span class="tipo" id="tipoA">—</span>
+      <h2 class="nome" id="nomeA">—</h2>
+      <p class="oque" id="oqueA">—</p>
+      <div class="retorno" id="retA">?</div>
+      <div class="trilho">
+        <div class="barra" id="barA"></div>
+        <div class="zero" id="zeroA"></div>
+        <div class="cdi" id="cdiA"></div>
+      </div>
+      <div class="legenda" id="legA">&nbsp;</div>
+      <span class="escolher">Rendeu mais</span>
+    </button>
+
+    <div class="vs" id="vs" aria-hidden="true">vs</div>
+
+    <button class="lado" id="ladoB" type="button">
+      <span class="tipo" id="tipoB">—</span>
+      <h2 class="nome" id="nomeB">—</h2>
+      <p class="oque" id="oqueB">—</p>
+      <div class="retorno" id="retB">?</div>
+      <div class="trilho">
+        <div class="barra" id="barB"></div>
+        <div class="zero" id="zeroB"></div>
+        <div class="cdi" id="cdiB"></div>
+      </div>
+      <div class="legenda" id="legB">&nbsp;</div>
+      <span class="escolher">Rendeu mais</span>
+    </button>
+  </main>
+
+  <footer class="foot">
+    <span>Retornos em reais, séries ajustadas · dados Mais Retorno · rentabilidade passada não é promessa</span>
+    <button id="reset" type="button">Reiniciar</button>
+  </footer>
+</div>
+
+<div class="over" id="over">
+  <div class="over-inner">
+    <h2 id="overTitle">Fim de jogo</h2>
+    <div class="final" id="overScore">0</div>
+    <p id="overMsg"></p>
+    <button class="again" id="again" type="button">Jogar de novo</button>
+  </div>
+</div>
+
+<script>
+/* Fechamentos anuais em reais, base ajustada (dividendos reinvestidos).
+   Índice 0 = dez/2013 … 12 = dez/2025, 13 = set/2026. i0 = primeiro ponto disponível. */
+var PONTOS = ["dez/2013","dez/2014","dez/2015","dez/2016","dez/2017","dez/2018","dez/2019",
+              "dez/2020","dez/2021","dez/2022","dez/2023","dez/2024","dez/2025","hoje"];
+
+var ATIVOS = [
+  ["CDI",          "índice", "juro básico acumulado",      0, [32.1909,35.6697,40.3884,46.0432,50.6255,53.8774,57.0927,58.6728,61.2516,68.8302,77.8108,86.272,98.6203,107.875]],
+  ["Ibovespa",     "índice", "bolsa brasileira",           0, [51507.2,50007.4,43350,60227.3,76402.1,87887.3,115645,119017,104822,109735,134185,120283,161125,179722]],
+  ["IFIX",         "índice", "fundos imobiliários",        0, [1374.7,1336.72,1409.02,1864.62,2226.46,2351.59,3197.58,2870.15,2804.79,2867.13,3311.43,3116.28,3775.31,3741.8]],
+  ["Poupança",     "índice", "caderneta",                  0, [8409.67,9005.06,9740.56,10549.5,11262.7,11783.4,12285,12544.5,12919.1,13949.9,15068.4,16276.6,17581.6,18515]],
+  ["IPCA",         "índice", "inflação oficial",           0, [3815.35,4059.82,4493.15,4775.68,4916.43,5100.58,5320.21,5560.54,6119.99,6474.02,6773.19,7100.43,7403.22,7638.17]],
+  ["S&P 500",      "índice", "bolsa americana em reais",   0, [4329.97,5468.85,7981.18,7296.57,8844.3,9713.54,13022.3,19519.2,26597.7,20033.4,23092.2,36420.8,37666.7,39355.5]],
+
+  ["Petrobras",    "ação",   "PETR4",                      0, [3.95209,2.46614,1.64901,3.65983,3.96256,5.78204,7.9108,7.42865,9.12003,13.3209,25.9008,30.5846,28.7382,46.87]],
+  ["Vale",         "ação",   "VALE3",                      0, [16.4112,10.7012,6.674,13.219,21.5021,28.1856,30.1176,51.3466,53.7712,66.928,62.7105,48.085,71.1706,78.3]],
+  ["Itaú",         "ação",   "ITUB4",                      0, [6.19732,7.75422,6.78726,10.11,13.1359,17.4696,19.6638,17.4169,14.4316,17.8139,25.1748,24.2958,39.635,39.88]],
+  ["Banco do Brasil","ação", "BBAS3",                      0, [5.89691,6.12276,4.14646,8.21229,9.55126,14.4646,17.1721,13.0448,10.3373,13.7588,23.9277,22.6864,21.4268,21.21]],
+  ["Magazine Luiza","ação",  "MGLU3",                      0, [1.92105,2.00961,0.592734,3.56547,21.7668,49.2667,104.525,219.272,63.4918,24.0952,18.9948,5.75193,8.55672,4.62]],
+  ["WEG",          "ação",   "WEGE3",                      0, [3.64929,4.77209,4.76351,5.0522,7.99411,7.68401,15.4049,33.9203,29.8685,35.4688,34.5134,50.1832,48.5904,49.7]],
+  ["Ambev",        "ação",   "ABEV3",                      0, [11.0099,10.8868,12.3127,11.6886,15.559,11.5767,14.3656,12.3114,12.5435,12.3362,12.1793,10.9548,14.0022,15.17]],
+  ["PRIO",         "ação",   "PRIO3",                      0, [0.89819,0.456004,0.24182,0.429947,1.61477,1.95825,6.52619,13.8558,20.4017,36.7271,45.5254,39.6926,40.9481,63.99]],
+  ["Cogna",        "ação",   "COGN3",                      0, [7.02145,11.4981,7.18152,10.3161,14.6243,7.29913,9.5173,3.85521,2.04834,1.76524,2.90598,0.907599,3.07003,2.34]],
+  ["Lojas Renner", "ação",   "LREN3",                      0, [6.26024,8.01192,9.19594,12.7001,21.6629,26.1972,38.6391,30.1431,18.8321,16.163,14.2572,11.3346,13.1898,11.06]],
+  ["B3",           "ação",   "B3SA3",                      0, [2.33953,2.15962,2.53586,3.94442,5.54256,6.69283,10.9262,16.385,9.4604,11.6056,13.1415,9.6094,13.1848,16.62]],
+  ["Localiza",     "ação",   "RENT3",                      0, [7.50969,8.17063,5.7875,8.17244,16.8038,22.8669,38.5965,56.493,43.7091,44.8645,54.979,28.8435,42.3064,34.64]],
+  ["Raia Drogasil","ação",   "RADL3",                      0, [2.40947,4.17483,5.92304,10.303,15.5709,9.76953,19.2136,21.6532,21.196,20.896,27.2099,20.6067,22.8683,19.66]],
+  ["Embraer",      "ação",   "EMBR3",                      0, [17.9098,23.5178,29.2372,15.5656,19.7746,21.5552,19.6164,8.79907,24.6772,14.2276,22.367,56.1322,86.99]],
+  ["Eletrobras",   "ação",   "ELET3",                      0, [4.23337,4.41703,4.38657,17.3711,14.7285,18.4525,29.5368,29.8726,29.2755,37.5991,38.5129,32.1062,58.68]],
+  ["JBS",          "ação",   "JBSS3",                      0, [5.56787,7.1822,8.00589,7.73707,6.6794,7.93377,17.663,16.5725,29.1265,18.0585,21.417,33.8865,39.03]],
+  ["Azul",         "ação",   "AZUL4",                      4, [26.481,35.4392,57.3721,38.6878,23.9805,10.8385,16.01,3.54,0.81]],
+  ["IRB Brasil",   "ação",   "IRBR3",                      4, [278.238,715.118,1032.38,238.505,117.211,25.075,43.0552,41.2572,52.1911,57.2]],
+  ["Hapvida",      "ação",   "HAPV3",                      5, [95.618,197.367,236.661,161.592,79.0835,69.2759,34.7158,15.2874,6.6]],
+
+  ["Maxi Renda",   "FII",    "MXRF11",                     0, [1.92326,1.98177,2.40151,2.87104,3.3726,3.94484,6.10885,5.21917,5.49353,6.25867,7.57119,7.5507,8.7055,9.21]],
+  ["Pátria Log",   "FII",    "HGLG11",                     0, [29.6885,33.5715,35.1422,42.8952,59.3134,66.5173,107.692,106.328,110.597,118.131,129.023,134.942,148.167,147]],
+  ["Kinea Renda",  "FII",    "KNRI11",                     0, [48.5963,44.7713,50.5802,73.2649,90.2327,86.0014,123.393,106.075,98.3343,104.662,133.888,120.116,146.898,153.97]],
+  ["XP Malls",     "FII",    "XPML11",                     4, [49.6316,56.6262,80.0173,70.0138,62.8625,66.2121,88.9937,82.2355,101.326,102.5]],
+
+  ["Small Caps",   "ETF",    "SMAL11",                     0, [64.18,53.11,41.53,54.1,80.95,87.05,136.44,135.3,113.3,96.52,113.2,85.95,112.45,107.7]],
+  ["Hashdex Cripto","ETF",   "HASH11",                     8, [49.45,15.55,33.05,84.96,65.75,51.75]],
+
+  ["Bitcoin",      "cripto", "BTC",                        0, [1850,885.762,1792,3463.5,48205.6,14882,29201.1,152762,261326,88227.5,209217,583265,482142,400274]],
+  ["Ethereum",     "cripto", "ETH",                        5, [526.01,529.96,3900.01,20778,6361.83,11282.1,20820,16345,12506]],
+  ["Dogecoin",     "cripto", "DOGE",                       8, [0.97258,0.37817,0.440912,1.9747,0.6483,0.42281]],
+
+  ["Nvidia",       "ação EUA","NVDA",                      0, [0.883394,1.2763,3.13555,8.55677,15.806,12.8089,23.5764,67.5701,163.611,76.0824,239.325,830.324,1024.95,1121.34]],
+  ["Apple",        "ação EUA","AAPL",                      0, [40.6539,64.8216,92.4204,86.7651,130.748,144.895,284.807,669.422,967.934,666.047,920.869,1539.5,1491.82,1676.7]],
+  ["Tesla",        "ação EUA","TSLA",                      0, [23.493,39.3843,62.4795,46.4291,68.6632,85.969,112.411,1222.38,1965.79,642.716,1202.97,2500.7,2474.54,1836.36]],
+  ["Microsoft",    "ação EUA","MSFT",                      0, [72.2526,104.507,188.495,181.047,258.611,365.915,599.725,1102.09,1804.54,1214.39,1782.47,2574.61,2644.29,2583.76]],
+  ["Amazon",       "ação EUA","AMZN",                      0, [46.7103,41.2176,131.961,122.195,193.43,290.992,372.404,846.264,930.364,438.287,735.587,1358.53,1270.06,1314.62]],
+  ["Meta",         "ação EUA","META",                      0, [127.024,205.623,405.494,372.04,579.184,503.993,820.86,1408.48,1862.39,623.009,1700.28,3611.16,3628.97,2983.53]],
+  ["Google",       "ação EUA","GOOGL",                     0, [65.1226,69.8575,150.564,127.999,172.701,200.671,267.561,451.395,801.242,456.311,670.337,1166.11,1720.01,1727.7]],
+  ["Netflix",      "ação EUA","NFLX",                      0, [12.3211,12.9625,44.6631,40.3477,63.5004,103.713,130.421,281.001,336.192,153.86,235.713,551.932,515.905,416.737]],
+  ["MicroStrategy","ação EUA","MSTR",                      0, [29.1045,43.1367,70.0092,64.3346,43.434,49.5006,57.4899,201.918,303.853,73.867,305.786,1793.41,836.09,644.006]],
+  ["GameStop",     "ação EUA","GME",                       0, [20.7826,16.7048,21.1254,16.7374,12.97,11.824,6.12666,24.4765,207.023,96.3187,84.868,194.067,110.488,97.0032]],
+  ["Coca-Cola",    "ação EUA","KO",                        0, [65.9526,78.7197,121.671,101.189,117.479,146.929,184.324,243.514,291.237,301.193,267.073,371.927,382.046,453.816]],
+  ["Disney",       "ação EUA","DIS",                       0, [159.7,226.081,375.328,315.368,335.338,406.966,565.217,912.881,838.055,439.517,425.198,676.785,621.248,547.777]],
+
+  ["Dynamo Cougar","fundo",  "ações, desde 1993",          0, [428.512,456.671,515.085,612.105,781.471,834.379,1330.01,1677.7,1387.41,1195.97,1466.06,1296.97,1799.21,1923.36]],
+  ["Verde AM V",   "fundo",  "multimercado",               0, [2.44626,2.64764,3.39553,3.893,4.076,4.37548,4.94781,5.12102,5.03942,5.81143,6.62092,7.38128,8.50681,9.34211]],
+  ["Verde AM Ações","fundo", "ações",                      4, [1.11845,1.29037,1.72096,1.83379,1.5031,1.25949,1.37702,1.14725,1.58387,1.65286]]
+].map(function(a){
+  return { nome:a[0], tipo:a[1], oque:a[2], i0:a[3], v:a[4], fim:a[3] + a[4].length - 1 };
+});
+
+var CDI = ATIVOS[0];
+
+var el = function(id){ return document.getElementById(id); };
+var streakEl = el("streak"), bestEl = el("best"), vsEl = el("vs");
+var ladoA = el("ladoA"), ladoB = el("ladoB"), over = el("over");
+
+var estado = { a:0, b:0, A:null, B:null, streak:0, best:0, recordeNovo:false, travado:true, vistos:[] };
+
+/* ---------- números ---------- */
+function retorno(ativo, i, f){ return ativo.v[f - ativo.i0] / ativo.v[i - ativo.i0] - 1; }
+function cobre(ativo, i, f){ return ativo.i0 <= i && ativo.fim >= f; }
+
+function pct(r){
+  var x = r * 100;
+  var casas = Math.abs(x) >= 1000 ? 0 : Math.abs(x) >= 100 ? 0 : 1;
+  return (x >= 0 ? "+" : "") + x.toFixed(casas).replace(".", ",") + "%";
+}
+
+function anosDe(i, f){
+  var n = f - i;
+  if (f === 13) n = 12 - i + 0.67;          /* último ponto é set/2026 */
+  return n;
+}
+function textoDuracao(i, f){
+  var n = anosDe(i, f);
+  if (n === Math.round(n)) return n + (n === 1 ? " ano" : " anos");
+  return n.toFixed(1).replace(".", ",") + " anos";
+}
+
+/* ---------- sorteio ---------- */
+function sorteiaRodada(){
+  for (var tentativa = 0; tentativa < 400; tentativa++){
+    var dur = 1 + Math.floor(Math.random() * 8);        /* 1 a 8 anos */
+    var i = Math.floor(Math.random() * (13 - dur + 1));
+    var f = i + dur;
+    if (!cobre(CDI, i, f)) continue;
+
+    var pool = ATIVOS.filter(function(at){
+      return cobre(at, i, f) && at !== CDI;
+    });
+    if (pool.length < 2) continue;
+
+    var A = pool[Math.floor(Math.random() * pool.length)];
+    var B = pool[Math.floor(Math.random() * pool.length)];
+    if (A === B) continue;
+
+    var par = [A.nome, B.nome].sort().join("|");
+    if (estado.vistos.indexOf(par) !== -1) continue;
+
+    var rA = retorno(A, i, f), rB = retorno(B, i, f);
+    /* nada de empate técnico: a diferença precisa dar para sentir */
+    if (Math.abs(rA - rB) < 0.06) continue;
+
+    estado.vistos.push(par);
+    if (estado.vistos.length > 40) estado.vistos.shift();
+    return { i:i, f:f, A:A, B:B };
+  }
+  return null;
+}
+
+/* ---------- desenho ---------- */
+function preenche(letra, ativo){
+  el("tipo" + letra).textContent = ativo.tipo;
+  el("nome" + letra).textContent = ativo.nome;
+  el("oque" + letra).textContent = ativo.oque;
+  el("ret" + letra).textContent = "?";
+  el("ret" + letra).className = "retorno";
+  el("bar" + letra).style.width = "0%";
+  el("bar" + letra).className = "barra";
+  el("cdi" + letra).classList.remove("on");
+  el("leg" + letra).innerHTML = "&nbsp;";
+}
+
+/* escala compartilhada: comprimento por log(1+r), que segura o bitcoin sem achatar o resto */
+function forca(r){ return Math.log(1 + Math.max(r, -0.999)); }
+
+function posicionaBarras(rA, rB, rCDI){
+  var vals = [rA, rB, rCDI].map(forca);
+  var maxPos = Math.max(0.0001, Math.max.apply(null, vals.concat([0])));
+  var maxNeg = Math.max(0.0001, -Math.min.apply(null, vals.concat([0])));
+  /* o zero fica proporcional ao espaço que a parte negativa precisa */
+  var zero = maxNeg / (maxNeg + maxPos);
+  zero = Math.max(0.06, Math.min(0.94, zero));
+
+  ["A", "B"].forEach(function(l, k){
+    var r = k === 0 ? rA : rB;
+    var s = forca(r);
+    var barra = el("bar" + l);
+    el("zero" + l).style.left = (zero * 100) + "%";
+    if (s >= 0){
+      barra.className = "barra";
+      barra.style.left = (zero * 100) + "%";
+      barra.style.width = ((1 - zero) * (s / maxPos) * 100) + "%";
+    } else {
+      var larg = zero * (-s / maxNeg);
+      barra.className = "barra neg";
+      barra.style.left = ((zero - larg) * 100) + "%";
+      barra.style.width = (larg * 100) + "%";
+    }
+    var sc = forca(rCDI);
+    var posCDI = sc >= 0 ? zero + (1 - zero) * (sc / maxPos) : zero - zero * (-sc / maxNeg);
+    var marca = el("cdi" + l);
+    marca.style.left = (posCDI * 100) + "%";
+    marca.classList.add("on");
+  });
+}
+
+function giraRetorno(node, alvo, ms){
+  var f = pct(alvo);
+  node.className = "retorno revelado " + (alvo >= 0 ? "pos" : "neg");
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){ node.textContent = f; return; }
+  var t0 = performance.now();
+  function passo(t){
+    var k = Math.min(1, (t - t0) / ms);
+    var atual = alvo * (1 - Math.pow(1 - k, 3));
+    node.textContent = k < 1 ? pct(atual) : f;
+    if (k < 1) requestAnimationFrame(passo);
+  }
+  requestAnimationFrame(passo);
+}
+
+/* ---------- rodada ---------- */
+function rodada(){
+  var r = sorteiaRodada();
+  if (!r){ encerra(true); return; }
+  estado.i = r.i; estado.f = r.f; estado.A = r.A; estado.B = r.B;
+
+  var inicio = r.i === 13 ? "hoje" : PONTOS[r.i];
+  var fim = PONTOS[r.f];
+  el("periodo").innerHTML = inicio + ' <i>→</i> ' + fim;
+  el("duracao").textContent = textoDuracao(r.i, r.f) + " · mesma janela para os dois";
+
+  preenche("A", r.A);
+  preenche("B", r.B);
+  ladoA.classList.remove("venceu");
+  ladoB.classList.remove("venceu");
+  ladoA.disabled = false;
+  ladoB.disabled = false;
+  vsEl.className = "vs";
+  vsEl.textContent = "vs";
+  estado.travado = false;
+}
+
+function responde(escolheuA){
+  if (estado.travado) return;
+  estado.travado = true;
+  ladoA.disabled = true;
+  ladoB.disabled = true;
+
+  var rA = retorno(estado.A, estado.i, estado.f);
+  var rB = retorno(estado.B, estado.i, estado.f);
+  var rCDI = retorno(CDI, estado.i, estado.f);
+  var acertou = escolheuA ? rA > rB : rB > rA;
+
+  giraRetorno(el("retA"), rA, 800);
+  giraRetorno(el("retB"), rB, 800);
+  posicionaBarras(rA, rB, rCDI);
+
+  (rA > rB ? ladoA : ladoB).classList.add("venceu");
+  el("legA").textContent = legenda(rA, rCDI);
+  el("legB").textContent = legenda(rB, rCDI);
+
+  setTimeout(function(){
+    vsEl.className = "vs verdict " + (acertou ? "ok" : "no");
+    vsEl.textContent = acertou ? "✓" : "✕";
+    setTimeout(function(){ acertou ? avanca() : encerra(false); }, 1300);
+  }, 850);
+}
+
+function legenda(r, rCDI){
+  var mult = (1 + r);
+  var txt = "R$ 1.000 viraram R$ " + Math.round(1000 * mult).toLocaleString("pt-BR");
+  return txt + (r > rCDI ? " · ganhou do CDI" : " · perdeu do CDI");
+}
+
+function avanca(){
+  estado.streak += 1;
+  streakEl.textContent = estado.streak;
+  if (estado.streak > estado.best){
+    estado.best = estado.streak;
+    estado.recordeNovo = true;
+    bestEl.textContent = estado.best;
+    try { localStorage.setItem("qrm-recorde", String(estado.best)); } catch (e) {}
+  }
+  setTimeout(rodada, 120);
+}
+
+function encerra(semRodada){
+  var rA = retorno(estado.A, estado.i, estado.f);
+  var rB = retorno(estado.B, estado.i, estado.f);
+  var venc = rA > rB ? estado.A : estado.B;
+  var perd = rA > rB ? estado.B : estado.A;
+  var rv = Math.max(rA, rB), rp = Math.min(rA, rB);
+
+  el("overTitle").textContent = semRodada ? "Acabaram as combinações"
+                              : estado.streak === 0 ? "Começou mal" : "Errou essa";
+  el("overScore").textContent = estado.streak;
+  el("overMsg").textContent = semRodada
+    ? "Você já viu tudo o que a base tem para hoje."
+    : venc.nome + " fez " + pct(rv) + " contra " + pct(rp) + " de " + perd.nome +
+      " entre " + PONTOS[estado.i] + " e " + PONTOS[estado.f] + ". " +
+      (estado.recordeNovo ? "Novo recorde." : "Seu recorde é " + estado.best + ".");
+  over.classList.add("show");
+  el("again").focus();
+}
+
+function comeca(){
+  over.classList.remove("show");
+  estado.streak = 0;
+  estado.recordeNovo = false;
+  estado.vistos = [];
+  streakEl.textContent = "0";
+  rodada();
+}
+
+ladoA.addEventListener("click", function(){ responde(true); });
+ladoB.addEventListener("click", function(){ responde(false); });
+el("again").addEventListener("click", comeca);
+el("reset").addEventListener("click", comeca);
+
+document.addEventListener("keydown", function(e){
+  if (over.classList.contains("show")){ if (e.key === "Enter") comeca(); return; }
+  if (e.key === "ArrowLeft")  responde(true);
+  if (e.key === "ArrowRight") responde(false);
+});
+
+try {
+  var salvo = parseInt(localStorage.getItem("qrm-recorde") || "0", 10);
+  if (!isNaN(salvo) && salvo > 0){ estado.best = salvo; bestEl.textContent = salvo; }
+} catch (e) {}
+
+comeca();
+</script>
