@@ -331,6 +331,81 @@
   }
   .foot button:hover{color:var(--ink)}
 
+  /* ---------- tutorial ---------- */
+  .tuto{
+    position:fixed;
+    inset:0;
+    z-index:20;
+    display:grid;
+    place-items:center;
+    padding:var(--gutter);
+    background:var(--paper);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .tuto.show{opacity:1;pointer-events:auto}
+  .tuto-inner{max-width:min(660px,100%)}
+  .tuto .rot{
+    font-family:var(--f-mono);
+    font-size:10px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 12px;
+  }
+  .tuto h2{
+    margin:0;
+    max-width:11ch;
+    font-size:clamp(30px,6.2vw,74px);
+    font-weight:800;
+    font-variation-settings:"wdth" 122;
+    letter-spacing:-.04em;
+    line-height:.88;
+  }
+  .tuto h2 em{font-style:normal;color:var(--accent)}
+  .tuto ul{
+    margin:24px 0 0;
+    padding:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    max-width:38ch;
+  }
+  .tuto li{
+    font-family:var(--f-mono);
+    font-size:12px;
+    line-height:1.45;
+    color:var(--ink-soft);
+    padding-left:16px;
+    position:relative;
+  }
+  .tuto li::before{
+    content:"";
+    position:absolute;
+    left:0;top:.52em;
+    width:7px;height:7px;
+    background:var(--ink);
+  }
+  .tuto button{
+    margin-top:28px;
+    appearance:none;
+    font-family:var(--f);
+    font-size:12px;
+    font-weight:700;
+    font-variation-settings:"wdth" 112;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    background:var(--ink);
+    border:1.5px solid var(--ink);
+    color:var(--paper);
+    padding:15px 32px;
+    cursor:pointer;
+    transition:background .18s ease, border-color .18s ease;
+  }
+  .tuto button:hover{background:var(--accent);border-color:var(--accent)}
+
   /* ---------- fim ---------- */
   .over{
     position:fixed;
@@ -475,8 +550,21 @@
 
   <footer class="foot">
     <span>Retornos em reais, séries ajustadas · dados Mais Retorno · rentabilidade passada não é promessa</span>
-    <button id="reset" type="button">reiniciar</button>
+    <span><button id="ajuda" type="button">como joga</button> · <button id="reset" type="button">reiniciar</button></span>
   </footer>
+</div>
+
+<div class="tuto" id="tuto">
+  <div class="tuto-inner">
+    <p class="rot">Como joga</p>
+    <h2>Clique no que <em>rendeu mais</em>.</h2>
+    <ul>
+      <li>São dois investimentos na mesma janela de tempo, sorteada a cada rodada.</li>
+      <li>A marca azul mostra onde o CDI ficou no período.</li>
+      <li>Errar custa uma vida. Você tem três.</li>
+    </ul>
+    <button id="comecar" type="button">Começar →</button>
+  </div>
 </div>
 
 <div class="over" id="over">
@@ -1000,10 +1088,23 @@ linhaB.addEventListener("click", function(){ responde(false); });
 el("again").addEventListener("click", comeca);
 el("reset").addEventListener("click", comeca);
 
+var tuto = el("tuto");
+function abreTuto(){ tuto.classList.add("show"); el("comecar").focus(); }
+function fechaTuto(){
+  tuto.classList.remove("show");
+  try { localStorage.setItem("qrm-tutorial", "1"); } catch (e) {}
+}
+el("comecar").addEventListener("click", fechaTuto);
+el("ajuda").addEventListener("click", abreTuto);
+
+/* só aparece sozinho na primeira visita */
+try { if (!localStorage.getItem("qrm-tutorial")) abreTuto(); } catch (e) { abreTuto(); }
+
 botaoProx.addEventListener("click", segueProxima);
 
 document.addEventListener("keydown", function(e){
   if (e.target && e.target.tagName === "BUTTON") return;   /* botão em foco já responde sozinho */
+  if (tuto.classList.contains("show")){ if (e.key === "Enter" || e.key === "Escape") fechaTuto(); return; }
   if (over.classList.contains("show")){ if (e.key === "Enter") comeca(); return; }
   if (estado.travado){ if (e.key === "Enter") segueProxima(); return; }
   if (e.key === "ArrowUp")   responde(true);
