@@ -60,7 +60,7 @@
   }
   .masthead h1 span{color:var(--accent)}
   .placar{display:flex;gap:clamp(16px,2.5vw,30px)}
-  .placar div{display:flex;align-items:baseline;gap:7px}
+  .placar div{display:flex;align-items:center;gap:7px}
   .placar span{
     font-family:var(--f-mono);
     font-size:9.5px;
@@ -89,7 +89,9 @@
     font-weight:800;
     font-variation-settings:"wdth" 118;
     font-variant-numeric:tabular-nums;
-    line-height:.9;
+    line-height:1;
+    display:flex;
+    align-items:center;
   }
 
   /* ---------- a janela, protagonista ---------- */
@@ -97,7 +99,7 @@
     padding:clamp(22px,5vh,54px) var(--gutter) clamp(18px,3.5vh,36px);
     display:grid;
     grid-template-columns:minmax(0,1fr) auto;
-    align-items:end;
+    align-items:center;
     gap:14px;
   }
   .eyebrow{
@@ -111,6 +113,9 @@
   }
   .periodo{
     margin:0;
+    display:flex;
+    align-items:center;      /* a seta fica no meio das duas linhas */
+    gap:.2em;
     font-size:clamp(38px,9.5vw,116px);
     font-weight:800;
     font-variation-settings:"wdth" 122;
@@ -119,11 +124,11 @@
     font-variant-numeric:tabular-nums;
     text-wrap:balance;
   }
-  .periodo span{display:block}
-  .periodo i{font-style:normal;color:var(--accent);padding-left:.12em}
+  .periodo .datas{display:flex;flex-direction:column}
+  .periodo .datas span{display:block}
+  .periodo i{font-style:normal;color:var(--accent);line-height:1}
   .sub{
     margin:0;
-    padding-bottom:.5em;
     font-family:var(--f-mono);
     font-size:clamp(10.5px,1.3vw,12.5px);
     color:var(--ink-soft);
@@ -184,6 +189,23 @@
     line-height:1;
     text-wrap:balance;
   }
+  /* aparece no hover: deixa explícito o que o clique vai afirmar */
+  .dica{
+    /* fora do grid: aparecer não pode empurrar nada */
+    position:absolute;
+    left:var(--gutter);
+    bottom:9px;
+    white-space:nowrap;
+    font-family:var(--f-mono);
+    font-size:10.5px;
+    letter-spacing:.02em;
+    color:var(--accent);
+    opacity:0;
+    transition:opacity .15s ease;
+    pointer-events:none;
+  }
+  .linha:hover:not(:disabled) .dica,
+  .linha:focus-visible .dica{opacity:1}
   .cod{
     display:block;
     margin-top:6px;
@@ -506,6 +528,7 @@
     .eixo{grid-area:eixo;height:26px;margin-top:9px}   /* espaço para o rótulo do CDI não encostar no ticker */
     .nome{font-size:clamp(21px,6.2vw,30px)}
     .cod{margin-top:4px}
+    .dica{display:none}
     .ret{font-size:clamp(30px,9.5vw,44px)}
     .mil{font-size:9.5px;margin-top:5px}
 
@@ -534,7 +557,7 @@
 
   <section class="janela">
     <p class="eyebrow">Janela sorteada</p>
-    <h2 class="periodo" id="periodo"><span>—</span></h2>
+    <h2 class="periodo" id="periodo"><span class="datas"><span>—</span></span></h2>
     <p class="sub" id="duracao">—</p>
   </section>
 
@@ -544,6 +567,7 @@
         <span class="tipo" id="tipoA">—</span>
         <h3 class="nome" id="nomeA">—</h3>
         <span class="cod" id="oqueA">—</span>
+        <span class="dica" id="dicaA"></span>
       </div>
       <div class="eixo">
         <div class="barra" id="barA"></div>
@@ -561,6 +585,7 @@
         <span class="tipo" id="tipoB">—</span>
         <h3 class="nome" id="nomeB">—</h3>
         <span class="cod" id="oqueB">—</span>
+        <span class="dica" id="dicaB"></span>
       </div>
       <div class="eixo">
         <div class="barra" id="barB"></div>
@@ -1022,11 +1047,14 @@ function rodada(){
   if (!r){ encerra(true); return; }
   estado.i = r.i; estado.f = r.f; estado.A = r.A; estado.B = r.B;
 
-  el("periodo").innerHTML = PONTOS[r.i] + ' <i>→</i> ' + PONTOS[r.f];
+  el("periodo").innerHTML = '<span class="datas"><span>' + PONTOS[r.i] + '</span><span>'
+                          + PONTOS[r.f] + '</span></span><i>→</i>';
   el("duracao").textContent = textoDuracao(r.i, r.f) + " · mesma janela para os dois";
 
   preenche("A", r.A);
   preenche("B", r.B);
+  el("dicaA").textContent = r.A.nome + " rendeu mais que " + r.B.nome;
+  el("dicaB").textContent = r.B.nome + " rendeu mais que " + r.A.nome;
   linhaA.classList.remove("venceu");
   linhaB.classList.remove("venceu");
   linhaA.disabled = false;
