@@ -154,7 +154,7 @@
     grid-template-columns:minmax(140px,20%) minmax(0,1fr) clamp(118px,17%,212px);
     align-items:center;
     gap:clamp(14px,2.5vw,34px);
-    padding:clamp(8px,1.6vh,20px) var(--gutter);
+    padding:clamp(12px,2.6vh,30px) var(--gutter);
     transition:background .18s ease;
   }
   .linha::before{
@@ -547,8 +547,24 @@
     color:var(--ink-soft);
     max-width:34ch;
   }
+  .over-acoes{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:26px}
+  .over .link{
+    margin:0;
+    padding:0;
+    background:none;
+    border:0;
+    font-family:var(--f-mono);
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:none;
+    color:var(--accent);
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+  }
+  .over .link:hover{color:var(--ink);background:none}
   .over button{
-    margin-top:26px;
+    margin-top:0;
     appearance:none;
     font-family:var(--f);
     font-size:12px;
@@ -652,7 +668,7 @@
     <p class="rot">Como joga</p>
     <h2>Clique no que <em>rendeu mais</em>.</h2>
     <ul>
-      <li>São quatro investimentos na mesma janela de tempo, sorteada a cada rodada.</li>
+      <li>São dois investimentos na mesma janela de tempo, sorteada a cada rodada.</li>
       <li>A marca azul mostra onde o CDI ficou no período.</li>
       <li>Errar custa uma vida. Você tem três.</li>
     </ul>
@@ -668,7 +684,7 @@
       <li><button type="button" data-nivel="facil"><b>Fácil</b><i id="qtdFacil"></i><span>Só nomes que todo mundo reconhece: Petrobras, Apple, bitcoin, poupança.</span></button></li>
       <li><button type="button" data-nivel="medio"><b>Médio</b><i id="qtdMedio"></i><span>Os conhecidos misturados com o que só quem investe acompanha.</span></button></li>
       <li><button type="button" data-nivel="dificil"><b>Difícil</b><i id="qtdDificil"></i><span>Fora do radar: small caps, FIIs, fundos de gestora e índices setoriais.</span></button></li>
-      <li><button type="button" data-nivel="mix"><b>Mix</b><i id="qtdMix"></i><span>Base inteira e quatro classes diferentes na mesma rodada: ação, FII, cripto, índice.</span></button></li>
+      <li><button type="button" data-nivel="mix"><b>Mix</b><i id="qtdMix"></i><span>Base inteira e sempre de classes diferentes: uma ação contra um FII, cripto contra índice.</span></button></li>
     </ul>
   </div>
 </div>
@@ -678,7 +694,10 @@
     <p class="rot" id="overRot">Fim de jogo</p>
     <h2><span id="overTitle">Errou essa</span><br><span class="placa" id="overScore">0</span></h2>
     <p id="overMsg"></p>
-    <button id="again" type="button">Jogar de novo</button>
+    <div class="over-acoes">
+      <button id="again" type="button">Jogar de novo</button>
+      <button id="overNivel" class="link" type="button">trocar de nível</button>
+    </div>
   </div>
 </div>
 
@@ -1153,7 +1172,7 @@ var ATIVOS = [
 });
 
 var CDI = ATIVOS[0];
-var N = 4;        /* opções por rodada */
+var N = 2;        /* opções por rodada */
 var VIDAS = 3;
 
 var NIVEIS = {
@@ -1310,7 +1329,8 @@ function previa(k){
   if (estado.travado || !estado.ativos[k]) return;
   selo.className = "selo";
   selo.textContent = "?";
-  vtexto.innerHTML = "Você diz: <b>" + estado.ativos[k].nome + "</b> rendeu mais que os outros três.";
+  vtexto.innerHTML = "Você diz: <b>" + estado.ativos[k].nome + "</b> rendeu mais que "
+                   + (N === 2 ? "o outro" : "os outros " + (N - 1)) + ".";
   veredito.classList.add("previa");
 }
 function limpaPrevia(){
@@ -1342,7 +1362,7 @@ function rodada(){
 
   el("periodo").innerHTML = '<span class="datas"><span>' + PONTOS[r.i] + '</span><span>'
                           + PONTOS[r.f] + '</span></span><i>→</i>';
-  el("duracao").textContent = textoDuracao(r.i, r.f) + " · mesma janela para os quatro";
+  el("duracao").textContent = textoDuracao(r.i, r.f) + " · mesma janela para " + (N === 2 ? "os dois" : "os " + N);
 
   linhas.forEach(function(l, k){
     var a = r.ativos[k];
@@ -1427,8 +1447,9 @@ function encerra(semRodada){
   el("overScore").textContent = estado.streak;
   el("overMsg").textContent = semRodada
     ? "Não há mais combinações inéditas para hoje."
-    : estado.ativos[melhor].nome + " fez " + pct(rs[melhor]) + " e foi o melhor dos quatro entre " +
-      PONTOS[estado.i] + " e " + PONTOS[estado.f] + ". " +
+    : estado.ativos[melhor].nome + " fez " + pct(rs[melhor]) +
+      (N === 2 ? " contra " + pct(Math.min.apply(null, rs)) + " do outro" : " e foi o melhor dos " + N) +
+      " entre " + PONTOS[estado.i] + " e " + PONTOS[estado.f] + ". " +
       (estado.recordeNovo ? "Novo recorde." : "Seu recorde é " + estado.best + ".");
   over.classList.add("show");
   el("again").focus();
@@ -1481,6 +1502,7 @@ el("ajuda").addEventListener("click", abreTuto);
 
 botaoProx.addEventListener("click", segueProxima);
 el("again").addEventListener("click", comeca);
+el("overNivel").addEventListener("click", function(){ over.classList.remove("show"); abreNivel(); });
 el("reset").addEventListener("click", comeca);
 
 document.addEventListener("keydown", function(e){
