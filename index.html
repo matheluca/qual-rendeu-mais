@@ -489,6 +489,8 @@
 </div>
 
 <script>
+/* tudo dentro da IIFE: nada de ATIVOS, estado ou retorno() no console */
+(function(){
 /* Fechamentos anuais em reais, base ajustada (dividendos reinvestidos).
    Índice 0 = dez/2013 … 12 = dez/2025, 13 = set/2026. i0 = primeiro ponto disponível. */
 var PONTOS = ["dez/2013","dez/2014","dez/2015","dez/2016","dez/2017","dez/2018","dez/2019",
@@ -1014,4 +1016,5 @@ try {
 } catch (e) {}
 
 comeca();
+})();
 </script>
