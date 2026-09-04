@@ -717,6 +717,7 @@
       <li><button type="button" data-nivel="facil"><b>Fácil</b><i id="qtdFacil"></i><span>Só nomes que todo mundo reconhece: Petrobras, Apple, bitcoin, poupança.</span></button></li>
       <li><button type="button" data-nivel="medio"><b>Médio</b><i id="qtdMedio"></i><span>Os conhecidos misturados com o que só quem investe acompanha.</span></button></li>
       <li><button type="button" data-nivel="dificil"><b>Difícil</b><i id="qtdDificil"></i><span>Fora do radar: small caps, FIIs, fundos de gestora e índices setoriais.</span></button></li>
+      <li><button type="button" data-nivel="mix"><b>Mix</b><i id="qtdMix"></i><span>Base inteira e sempre de classes diferentes: uma ação contra um FII, cripto contra índice.</span></button></li>
     </ul>
   </div>
 </div>
@@ -1233,7 +1234,9 @@ var VIDAS = 3;
 var NIVEIS = {
   facil:   { rot:"fácil",   ok:function(a){ return a.fama === 1; } },
   medio:   { rot:"médio",   ok:function(a){ return a.fama <= 2; } },
-  dificil: { rot:"difícil", ok:function(a){ return a.fama === 3; } }
+  dificil: { rot:"difícil", ok:function(a){ return a.fama === 3; } },
+  /* mix usa a base toda, mas obriga os dois lados a virem de classes diferentes */
+  mix:     { rot:"mix",     ok:function(a){ return true; }, cruzaClasses:true }
 };
 var estado = { i:0, f:0, A:null, B:null, nivel:"medio", vidas:VIDAS, streak:0, best:0, recordeNovo:false, travado:true, vistos:[] };
 
@@ -1273,6 +1276,7 @@ function sorteiaRodada(){
     var A = pool[Math.floor(Math.random() * pool.length)];
     var B = pool[Math.floor(Math.random() * pool.length)];
     if (A === B) continue;
+    if (NIVEIS[estado.nivel].cruzaClasses && A.tipo === B.tipo) continue;
 
     var par = [A.nome, B.nome].sort().join("|");
     if (estado.vistos.indexOf(par) !== -1) continue;
@@ -1458,7 +1462,7 @@ el("reset").addEventListener("click", comeca);
 var nivelEl = el("nivel");
 
 function abreNivel(){
-  ["facil","medio","dificil"].forEach(function(n){
+  ["facil","medio","dificil","mix"].forEach(function(n){
     var q = ATIVOS.filter(NIVEIS[n].ok).length;
     el("qtd" + n.charAt(0).toUpperCase() + n.slice(1)).textContent = q + " ativos";
   });
