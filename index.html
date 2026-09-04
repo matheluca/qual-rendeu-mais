@@ -1428,7 +1428,8 @@ function encerra(semRodada){
   var rB = retorno(estado.B, estado.i, estado.f);
   var venc = rA > rB ? estado.A : estado.B, perd = rA > rB ? estado.B : estado.A;
 
-  el("overRot").textContent = semRodada ? "Acabou a base" : "Fim de jogo";
+  el("overRot").textContent = (semRodada ? "Acabou a base" : "Fim de jogo")
+                            + " · nível " + NIVEIS[estado.nivel].rot;
   el("overTitle").textContent = semRodada ? "Você viu tudo"
                               : (estado.streak === 0 ? "Zerou as vidas" : "Acabaram as vidas");
   el("overScore").textContent = estado.streak;
