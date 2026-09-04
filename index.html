@@ -69,16 +69,20 @@
     color:var(--ink-soft);
   }
   .vidas{display:flex;gap:5px;align-items:center}
-  .vidas i{
-    width:11px;height:11px;
+  .vidas svg{
+    width:15px;
+    height:15px;
     display:block;
-    background:var(--ink);
-    transition:background .25s ease, box-shadow .25s ease, transform .25s ease;
+    fill:var(--ink);
+    stroke:none;
+    transition:fill .25s ease, transform .25s ease;
   }
-  .vidas i.perdida{
-    background:transparent;
-    box-shadow:inset 0 0 0 1.5px var(--paper-4);
-    transform:scale(.82);
+  /* vida perdida: o coração fica vazado */
+  .vidas svg.perdida{
+    fill:none;
+    stroke:var(--paper-4);
+    stroke-width:2.2px;
+    transform:scale(.88);
   }
   .placar b{
     font-size:clamp(18px,2.4vw,26px);
@@ -324,6 +328,7 @@
     letter-spacing:.06em;
     color:var(--ink-soft);
   }
+  .nota-curta{display:none}
   .foot button{
     appearance:none;background:none;border:none;padding:0;
     font:inherit;color:var(--accent);cursor:pointer;
@@ -468,21 +473,48 @@
   .over button:hover{background:var(--accent);border-color:var(--accent)}
 
   @media (max-width:820px){
-    .janela{grid-template-columns:1fr}
+    :root{--gutter:18px}
+
+    /* cabeçalho em uma linha só */
+    .masthead{align-items:center;gap:10px;padding:12px var(--gutter) 10px}
+    .masthead h1{font-size:13px;white-space:nowrap}
+    .placar{gap:13px}
+    .placar div{gap:5px}
+    .placar span{font-size:8px;letter-spacing:.08em}
+    .placar b{font-size:17px}
+    .vidas{gap:4px}
+    .vidas svg{width:13px;height:13px}
+
+    .janela{grid-template-columns:1fr;padding:16px var(--gutter) 14px;gap:6px}
+    .periodo{font-size:clamp(30px,9.6vw,48px)}
     .sub{text-align:left;padding-bottom:0;white-space:normal}
+
+    /* as duas linhas dividem a altura que sobra: alvo de toque grande e sem vão morto */
+    .ringue{justify-content:stretch}
     .linha{
+      flex:1 1 0;
+      align-content:center;
       grid-template-columns:1fr auto;
       grid-template-areas:"quem valor" "eixo eixo";
-      gap:10px 14px;
-      padding:16px var(--gutter);
+      gap:12px 14px;
+      padding:14px var(--gutter);
     }
+    .linha:hover:not(:disabled)::before,
+    .linha.venceu::before{width:5px}
     .quem{grid-area:quem}
     .valor{grid-area:valor}
-    .eixo{grid-area:eixo;height:26px;margin-top:4px}
-    .nome{font-size:clamp(19px,5.4vw,26px)}
-    .ret{font-size:clamp(26px,8vw,38px)}
-    .veredito{align-items:flex-start;flex-wrap:wrap}
-    .proxima{width:100%;margin-left:0;margin-top:4px}
+    .eixo{grid-area:eixo;height:26px;margin-top:9px}   /* espaço para o rótulo do CDI não encostar no ticker */
+    .nome{font-size:clamp(21px,6.2vw,30px)}
+    .cod{margin-top:4px}
+    .ret{font-size:clamp(30px,9.5vw,44px)}
+    .mil{font-size:9.5px;margin-top:5px}
+
+    .veredito{align-items:flex-start;flex-wrap:wrap;min-height:0}
+    .proxima{width:100%;margin-left:0;margin-top:6px;padding:13px 20px}
+
+    .foot{font-size:9px;gap:10px}
+    .nota-longa{display:none}
+    .nota-curta{display:inline}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -494,7 +526,7 @@
   <header class="masthead">
     <h1>qual rendeu mais<span>?</span></h1>
     <div class="placar">
-      <div><span>vidas</span><b class="vidas" id="vidas"><i></i><i></i><i></i></b></div>
+      <div><span>vidas</span><b class="vidas" id="vidas" aria-label="vidas restantes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.27 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.27 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.27 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/></svg></b></div>
       <div><span>seq</span><b id="streak">0</b></div>
       <div><span>recorde</span><b id="best">0</b></div>
     </div>
@@ -549,7 +581,8 @@
   </div>
 
   <footer class="foot">
-    <span>Retornos em reais, séries ajustadas · dados Mais Retorno · rentabilidade passada não é promessa</span>
+    <span class="nota-longa">Retornos em reais, séries ajustadas · dados Mais Retorno · rentabilidade passada não é promessa</span>
+    <span class="nota-curta">dados Mais Retorno · não é promessa</span>
     <span><button id="ajuda" type="button">como joga</button> · <button id="reset" type="button">reiniciar</button></span>
   </footer>
 </div>
