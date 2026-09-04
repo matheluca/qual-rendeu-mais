@@ -189,23 +189,6 @@
     line-height:1;
     text-wrap:balance;
   }
-  /* aparece no hover: deixa explícito o que o clique vai afirmar */
-  .dica{
-    /* fora do grid: aparecer não pode empurrar nada */
-    position:absolute;
-    left:var(--gutter);
-    bottom:9px;
-    white-space:nowrap;
-    font-family:var(--f-mono);
-    font-size:10.5px;
-    letter-spacing:.02em;
-    color:var(--accent);
-    opacity:0;
-    transition:opacity .15s ease;
-    pointer-events:none;
-  }
-  .linha:hover:not(:disabled) .dica,
-  .linha:focus-visible .dica{opacity:1}
   .cod{
     display:block;
     margin-top:4px;
@@ -295,6 +278,10 @@
     transition:opacity .25s ease;
   }
   .veredito.on{opacity:1}
+  /* prévia do que o clique vai afirmar, no espaço que já estava vazio */
+  .veredito.previa{opacity:1}
+  .veredito.previa .selo{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-soft)}
+  .veredito.previa p{color:var(--ink-soft)}
   .selo{
     flex:none;
     width:30px;height:30px;
@@ -1194,16 +1181,20 @@ for (var k = 0; k < N; k++){
     b.type = "button";
     b.innerHTML =
       '<div class="quem"><span class="tipo">—</span><h3 class="nome">—</h3>' +
-      '<span class="cod">—</span><span class="dica"></span></div>' +
+      '<span class="cod">—</span></div>' +
       '<div class="eixo"><div class="barra"></div><div class="zero"></div>' +
       '<div class="marcaCDI"><i>CDI</i></div></div>' +
       '<div class="valor"><div class="ret">?</div><div class="mil"></div></div>';
     b.addEventListener("click", function(){ responde(k); });
+    b.addEventListener("mouseenter", function(){ previa(k); });
+    b.addEventListener("focus", function(){ previa(k); });
+    b.addEventListener("mouseleave", limpaPrevia);
+    b.addEventListener("blur", limpaPrevia);
     ringue.appendChild(b);
     linhas.push({
       btn:b,
       tipo:b.querySelector(".tipo"), nome:b.querySelector(".nome"), cod:b.querySelector(".cod"),
-      dica:b.querySelector(".dica"), ret:b.querySelector(".ret"), mil:b.querySelector(".mil"),
+      ret:b.querySelector(".ret"), mil:b.querySelector(".mil"),
       bar:b.querySelector(".barra"), zero:b.querySelector(".zero"), cdi:b.querySelector(".marcaCDI")
     });
   })(k);
@@ -1314,6 +1305,20 @@ function pintaVidas(){
   });
 }
 
+/* passar o mouse mostra, na faixa de baixo, o que o clique vai afirmar */
+function previa(k){
+  if (estado.travado || !estado.ativos[k]) return;
+  selo.className = "selo";
+  selo.textContent = "?";
+  vtexto.innerHTML = "Você diz: <b>" + estado.ativos[k].nome + "</b> rendeu mais que os outros três.";
+  veredito.classList.add("previa");
+}
+function limpaPrevia(){
+  if (estado.travado) return;
+  veredito.classList.remove("previa");
+  vtexto.textContent = "";
+}
+
 /* o jogo espera o clique: nada avança sozinho */
 function armaProxima(rotulo, fn){
   estado.proxima = fn;
@@ -1344,7 +1349,6 @@ function rodada(){
     l.tipo.textContent = a.tipo;
     l.nome.textContent = a.nome;
     l.cod.textContent = a.oque;
-    l.dica.textContent = a.nome + " rendeu mais que os outros três";
     l.ret.textContent = "?";
     l.ret.className = "ret";
     l.mil.textContent = "";
@@ -1357,7 +1361,8 @@ function rodada(){
     l.btn.disabled = false;
   });
 
-  veredito.classList.remove("on");
+  veredito.classList.remove("on", "previa");
+  vtexto.textContent = "";
   botaoProx.hidden = true;
   estado.proxima = null;
   estado.travado = false;
@@ -1391,6 +1396,7 @@ function responde(escolha){
     (acertou ? "" : restam > 0
        ? " Resta" + (restam === 1 ? "" : "m") + " <b>" + restam + " vida" + (restam === 1 ? "" : "s") + "</b>."
        : " <b>Sem vidas.</b>");
+  veredito.classList.remove("previa");
   veredito.classList.add("on");
 
   if (acertou)                armaProxima("Próxima →", avanca);
